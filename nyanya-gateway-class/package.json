@@ -1,0 +1,14 @@
+{
+  "name": "@nyanya/gateway-class",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nyanya Gateway compatibility bridge for original J2ME/Symbian QQ clients",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node self-test.js",
+    "test:legacy": "node legacy/self-test.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

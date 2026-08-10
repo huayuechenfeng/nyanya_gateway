@@ -1,0 +1,21 @@
+{
+  "name": "nyanya-gateway-release",
+  "version": "__VERSION__",
+  "private": true,
+  "description": "Standalone Nyanya Gateway release",
+  "workspaces": [
+    "gateway",
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "npm --workspace gateway run start",
+    "test": "npm run test:protocol && npm run test:core && npm run test:onebot && npm run test:gateway",
+    "test:protocol": "npm --workspace packages/nyanya-protocol run test",
+    "test:core": "npm --workspace packages/gateway-core run test",
+    "test:onebot": "npm --workspace packages/onebot-adapter run test",
+    "test:gateway": "npm --workspace gateway run test"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

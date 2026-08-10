@@ -1,0 +1,27 @@
+# Nyanya Gateway 版本矩阵
+
+版本日期：2026-08-10。产品发布版本与线协议版本是两套编号：当前产品为 `0.1.0`，第一方 Nyanya LAN 协议为稳定的 `v1`。
+
+| 组件 | 包/产物版本 | 协议或运行环境 | 兼容关系 |
+| --- | --- | --- | --- |
+| Nyanya Gateway | 0.1.0 | Node.js 22.5+、OneBot v11、Nyanya Protocol v1 | 使用 Core 0.1.0、OneBot Adapter 0.1.0、Protocol 1.0.0 |
+| Gateway Core | 0.1.0 | 纯内部领域接口 | 同时供 Gateway 0.1.0 与 Gateway Class 0.1.0 使用 |
+| OneBot Adapter | 0.1.0 | OneBot v11 正向 WebSocket | 同时供两个网关使用 |
+| Nyanya Protocol | 1.0.0 | 线协议 v1 | 缺省 AUTH 版本按旧式 v1 处理；显式未知版本会拒绝 |
+| Nyanya J2ME Client | 0.1.0 | CLDC 1.1 / MIDP 2.0、Protocol v1 | 声明 `text`、`contacts`、`notice`、`offline` 能力；连接通用 Gateway 0.1.0 |
+| Nyanya Gateway Class | 0.1.0 | Node.js 22.5+、OneBot v11、旧 QQ 二进制协议 | 使用 Core 0.1.0 与 OneBot Adapter 0.1.0；不使用 Nyanya Protocol |
+| 原版 J2ME/Symbian QQ | 外部客户端版本 | 客户端固有旧 QQ 协议 | 只连接 Gateway Class；不连接通用 Gateway |
+
+## 发布组合
+
+| 发布包 | 必含组件 | 不应包含 |
+| --- | --- | --- |
+| `Nyanya-Gateway-v0.1.0` | Gateway 0.1.0、Core 0.1.0、OneBot Adapter 0.1.0、Protocol 1.0.0 | Gateway Class、旧 QQ 协议、逆向材料、生产数据 |
+| `Nyanya-Gateway-Class-v0.1.0` | Gateway Class 0.1.0、Core 0.1.0、OneBot Adapter 0.1.0 | 通用 Gateway、Nyanya Protocol、第一方客户端、逆向提取物、生产数据 |
+
+## 升级规则
+
+- Nyanya 线协议兼容变化只提升 `Nyanya Protocol` 版本，并用共享黄金向量验证 Node 与各客户端。
+- Core 或 OneBot Adapter 的内部接口变化，必须同时回归两个网关。
+- Gateway Class 的旧 QQ 命令、分页或机型兼容变化不提升 Nyanya Protocol 版本。
+- 新增 3DS、PSV 等第一方客户端时，应实现已登记的 Nyanya Protocol 版本，不复制 NapCat/OneBot 逻辑。

@@ -1,0 +1,12 @@
+{
+  "host": "127.0.0.1",
+  "port": 14000,
+  "token": "replace-with-a-private-device-token",
+  "onebotUrl": "ws://127.0.0.1:3001",
+  "onebotToken": "",
+  "heartbeatMs": 30000,
+  "sendMinIntervalMs": 800,
+  "sendMaxPerMinute": 30,
+  "offlineCap": 200,
+  "historyCap": 100
+}

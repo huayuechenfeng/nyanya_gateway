@@ -1,0 +1,13 @@
+{
+  "name": "@nyanya/gateway-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Protocol-neutral domain core for Nyanya Gateway applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "node self-test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

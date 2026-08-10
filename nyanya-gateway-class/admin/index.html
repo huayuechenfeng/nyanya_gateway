@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nyanya gateway 管理页</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; background: #f2f0ea; color: #222; margin: 0; }
+    header { background: #5b8c5a; color: #fff; padding: 14px 20px; font-size: 20px; }
+    main { max-width: 760px; margin: 20px auto; padding: 0 16px; }
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    h2 { font-size: 16px; margin: 0 0 10px; }
+    table { border-collapse: collapse; width: 100%; }
+    td, th { border: 1px solid #ddd; padding: 6px 8px; text-align: left; font-size: 14px; }
+    th { background: #f6f6f6; }
+    label { display: inline-block; width: 110px; }
+    input { width: 260px; padding: 6px; margin: 4px 0; }
+    button { background: #5b8c5a; color: #fff; border: 0; border-radius: 4px; padding: 8px 16px; cursor: pointer; }
+    button:hover { background: #477247; }
+    .ok { color: #2a7a2a; }
+    .err { color: #b33; }
+    pre { background: #1e1e1e; color: #d5d5d5; padding: 10px; border-radius: 6px; height: 260px; overflow: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>nyanya gateway · 管理页</header>
+  <main>
+    <div class="card">
+      <h2>状态</h2>
+      <table id="status"><tr><td>加载中…</td></tr></table>
+      <p style="margin-top:10px">
+        <button onclick="refresh()">刷新镜像</button>
+        <button onclick="loadStatus()">刷新状态</button>
+      </p>
+    </div>
+    <div class="card">
+      <h2>设备账号（老客户端用它登录）</h2>
+      <p class="hint">QQ 号必须等于 NapCat 连接的真实 QQ 号；密码是 nyanya 本地 token，不是 QQ 密码。</p>
+      <label>QQ 号</label><input id="uin" placeholder="例如 10001"><br>
+      <label>token</label><input id="token" placeholder="老客户端登录密码"><br>
+      <button onclick="saveDevice()">保存设备账号</button>
+      <span id="saveResult"></span>
+    </div>
+    <div class="card">
+      <h2>运行日志</h2>
+      <button onclick="loadLogs()">刷新日志</button>
+      <pre id="logs"></pre>
+    </div>
+  </main>
+  <script>
+    async function api(url, options) {
+      const response = await fetch(url, options);
+      return response.json();
+    }
+    async function loadStatus() {
+      const data = await api('/api/status');
+      const s = data.status || {};
+      const rows = [
+        ['NapCat 连接', s.connected ? '<span class="ok">已连接</span>' : '<span class="err">未连接</span>'],
+        ['NapCat 地址', s.onebotUrl || '-'],
+        ['self_id（真实 QQ 号）', s.selfId || '-'],
+        ['昵称', s.nickname || '-'],
+        ['设备账号', s.deviceConfigured ? s.selfId + (s.deviceOnline ? '（在线）' : '（离线）') : '未创建'],
+        ['好友数', s.friendCount],
+        ['群数', s.groupCount],
+        ['已发送条数', s.sentCount],
+      ];
+      document.getElementById('status').innerHTML =
+        rows.map((row) => '<tr><th>' + row[0] + '</th><td>' + row[1] + '</td></tr>').join('');
+    }
+    async function refresh() {
+      const data = await api('/api/refresh', { method: 'POST' });
+      alert(data.ok ? '镜像已刷新：好友 ' + data.result.friends + '，群 ' + data.result.groups
+        : '刷新失败：' + (data.error || 'NapCat 未连接'));
+      loadStatus();
+    }
+    async function saveDevice() {
+      const uin = document.getElementById('uin').value.trim();
+      const token = document.getElementById('token').value.trim();
+      const data = await api('/api/device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uin, token }),
+      });
+      document.getElementById('saveResult').textContent =
+        data.ok ? '已保存' + (data.warning ? '（' + data.warning + '）' : '') : '失败：' + data.error;
+      document.getElementById('saveResult').className = data.ok ? 'ok' : 'err';
+      loadStatus();
+    }
+    async function loadLogs() {
+      const data = await api('/api/logs?lines=200');
+      document.getElementById('logs').textContent = (data.lines || []).join('\n');
+    }
+    loadStatus();
+    loadLogs();
+    setInterval(loadStatus, 3000);
+  </script>
+</body>
+</html>

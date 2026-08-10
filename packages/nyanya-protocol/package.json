@@ -1,0 +1,13 @@
+{
+  "name": "@nyanya/protocol",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Versioned LAN wire protocol for first-party Nyanya clients",
+  "main": "index.js",
+  "scripts": {
+    "test": "node self-test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

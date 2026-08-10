@@ -1,0 +1,55 @@
+# Nyanya Gateway 架构
+
+Nyanya Gateway 将 NapCat/OneBot 与不同年代、不同平台的客户端隔离开。QQ 上联、领域模型和客户端协议各自只有一份实现。
+
+```mermaid
+flowchart LR
+    N["NapCat / OneBot v11"] --> O["packages/onebot-adapter"]
+    O --> G["gateway 通用网关"]
+    O --> C["nyanya-gateway-class 兼容网关"]
+    K["packages/gateway-core"] --> G
+    K --> C
+    P["packages/nyanya-protocol v1"] --> G
+    J["第一方 Nyanya J2ME"] --> P
+    F["未来 3DS / PSV 客户端"] --> P
+    L["原版 J2ME / Symbian QQ"] --> C
+```
+
+## 模块边界
+
+- `packages/onebot-adapter/`：唯一的 NapCat/OneBot WebSocket 实现，负责 action 调用、事件接收和重连。
+- `packages/gateway-core/`：协议无关的联系人、群、消息、发送路由、限频、会话、历史和离线投递模型。
+- `packages/nyanya-protocol/`：第一方客户端使用的版本化 LAN 协议、AUTH 能力协商和跨语言黄金向量。
+- `gateway/`：把 Nyanya Protocol 帧转换为共享核心操作，不包含旧 QQ 命令。
+- `nyanya-gateway-class/`：把共享核心对象转换为原版 QQ 二进制协议，独立维护 QQ-TEA、JCE/WUP、旧命令和 SQLite。
+- `clients/`：第一方 Nyanya 客户端，不直接接触 NapCat/OneBot。
+
+旧 QQ 的命令号、分页限制和 Symbian/J2ME 机型兼容策略不得进入通用协议；第一方客户端的平台差异通过 capability 表达。
+
+## 运行与数据
+
+两个网关是独立进程，默认都使用 TCP 14000，因此通常不能同时以默认配置启动。
+
+- 通用网关配置：`gateway/config.json`；默认不创建持久化数据库。
+- 兼容网关配置：`nyanya-gateway-class/config.json`。
+- 兼容网关数据：`nyanya-gateway-class/nyanya-data/`，包含 SQLite、WAL、日志、PID 和本地媒体。
+
+配置、数据和源码严格分开。发布包只提供 `config.example.json`，不会复制开发机的配置或运行数据。
+
+## 协议与版本
+
+当前产品版本为 0.1.0。第一方 Nyanya 线协议为 v1，对应 `@nyanya/protocol` 1.0.0；Gateway Class 不使用该协议。具体组合见 [版本矩阵](docs/VERSION-MATRIX.md)。
+
+协议升级遵循以下原则：
+
+- v1 帧头、Type 数值和既有字段含义保持稳定；
+- 新的可选能力先通过 AUTH capability 协商；
+- 无法保持语义兼容时提升协议版本；
+- Node 与客户端实现必须共同通过 `vectors/v1.tsv` 黄金向量。
+
+## 发布边界
+
+- `Nyanya-Gateway-vX.Y.Z`：通用网关、三个共享包、使用教程和 Nyanya 协议文档。
+- `Nyanya-Gateway-Class-vX.Y.Z`：兼容网关、Gateway Core、OneBot Adapter 和使用教程。
+
+两个包都排除生产配置、运行数据、历史迁移记录和逆向研究材料。

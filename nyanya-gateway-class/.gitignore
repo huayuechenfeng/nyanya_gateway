@@ -1,0 +1,7 @@
+nyanya-data/
+legacy/data/
+node_modules/
+build/
+dist/
+*.log
+*.pid

@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+MIDlet-Name: J2ME QQ
+MIDlet-Version: 0.1.0
+MIDlet-Vendor: Nyanya Gateway
+MIDlet-1: J2ME QQ,,com.nyanya.qqj2me.QqMidlet
+Nokia-MIDlet-On-Screen-Keypad: no
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0
+MIDlet-Permissions: javax.microedition.io.Connector.socket, javax.microedition.io.Connector.http
+MIDlet-Permissions-Opt: javax.microedition.io.Connector.https
