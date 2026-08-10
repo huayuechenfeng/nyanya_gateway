@@ -2,6 +2,8 @@
 
 本文记录工作区中复用的代码、工具和外部客户端边界。发布包不包含原版 QQ JAR、class、抓包或反编译提取物。
 
+Nyanya Gateway 项目自身的代码采用 Apache License, Version 2.0，完整文本见根目录 `LICENSE`。下列第三方资源、复用代码和原版客户端仍分别受其自身权利与许可约束。
+
 ## J2ME 工具链与工具类
 
 第一方 J2ME 客户端的构建脚本和部分基础工具类源自用户已有的 `j2me大模型` 项目，该项目使用 Apache License 2.0，Copyright 2026 huayuechenfeng。
@@ -32,4 +34,4 @@
 
 ## 发布要求
 
-公开发布时必须保留本文件与 `THIRD-PARTY-LICENSE.txt`，并继续排除本机配置、账号 token、运行数据库、日志以及没有再分发授权的原版客户端文件。
+公开发布时必须保留 `LICENSE`、本文件与 `THIRD-PARTY-LICENSE.txt`，并继续排除本机配置、账号 token、运行数据库、日志以及没有再分发授权的原版客户端文件。

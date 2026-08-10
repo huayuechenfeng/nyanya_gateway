@@ -169,6 +169,7 @@ Copy-Item -LiteralPath (Join-Path $workspace 'docs\BEGINNER-GUIDE.md') -Destinat
 Copy-Item -LiteralPath (Join-Path $workspace 'docs\ATTRIBUTION.md') -Destination (Join-Path $genericRoot 'docs\ATTRIBUTION.md')
 Copy-Item -LiteralPath (Join-Path $workspace 'docs\VERSION-MATRIX.md') -Destination (Join-Path $genericRoot 'docs\VERSION-MATRIX.md')
 Copy-Item -LiteralPath (Join-Path $workspace 'DESIGN.md') -Destination (Join-Path $genericRoot 'DESIGN.md')
+Copy-Item -LiteralPath (Join-Path $workspace 'LICENSE') -Destination $genericRoot
 Copy-Item -LiteralPath (Join-Path $workspace 'THIRD-PARTY-LICENSE.txt') -Destination $genericRoot
 $rootLaunchers = @(Get-ChildItem -LiteralPath $workspace -File -Filter '*.bat')
 if ($rootLaunchers.Count -ne 2) {
@@ -188,6 +189,7 @@ Copy-Item -LiteralPath (Join-Path $workspace 'docs\BEGINNER-GUIDE.md') -Destinat
 Copy-Item -LiteralPath (Join-Path $workspace 'docs\ATTRIBUTION.md') -Destination (Join-Path $classRoot 'docs\ATTRIBUTION.md')
 Copy-Item -LiteralPath (Join-Path $workspace 'docs\VERSION-MATRIX.md') -Destination (Join-Path $classRoot 'docs\VERSION-MATRIX.md')
 Copy-Item -LiteralPath (Join-Path $workspace 'DESIGN.md') -Destination (Join-Path $classRoot 'DESIGN.md')
+Copy-Item -LiteralPath (Join-Path $workspace 'LICENSE') -Destination $classRoot
 Copy-Item -LiteralPath (Join-Path $workspace 'THIRD-PARTY-LICENSE.txt') -Destination $classRoot
 Copy-ReleaseAsset 'class-package.json' (Join-Path $classRoot 'package.json') $Version
 Copy-ReleaseAsset 'CLASS-README.md' (Join-Path $classRoot 'README.md')

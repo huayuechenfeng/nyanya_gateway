@@ -3,6 +3,7 @@
   "version": "__VERSION__",
   "private": true,
   "description": "Standalone Nyanya Gateway Class compatibility release",
+  "license": "Apache-2.0",
   "workspaces": [
     "nyanya-gateway-class",
     "packages/*"

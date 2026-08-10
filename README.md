@@ -118,6 +118,12 @@ npm run release                 # 生成两个独立发布目录和 ZIP
 - [组件版本矩阵](docs/VERSION-MATRIX.md)：查看组件和协议兼容关系。
 - [资源与代码归属](docs/ATTRIBUTION.md)：第三方资源、复用代码和发布边界。
 
+## 开源许可证
+
+Nyanya Gateway 采用 [Apache License, Version 2.0](LICENSE) 开源。使用、修改和分发本项目代码时，请遵守该许可证的条款。
+
+第三方资源、复用代码及原版 QQ 客户端的权利归属不因本项目许可证而改变，详情见 [资源与代码归属](docs/ATTRIBUTION.md) 和 [第三方许可文本](THIRD-PARTY-LICENSE.txt)。
+
 ## 安全提醒
 
 - 网关默认使用局域网明文协议，只应在可信的家庭网络或可信 VPN 中使用。

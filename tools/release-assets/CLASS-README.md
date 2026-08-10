@@ -81,3 +81,7 @@ npm start
 图片和语音目前只会本地保存或显示文字提示；搜索、加好友、群管理等操作没有完整映射；群消息不做离线补发。NapCat 和第三方 QQ 协议工具存在兼容及账号风控风险，不要使用主力账号；相关账号及数据损失由使用者自行承担，本项目及贡献者不承担责任。
 
 本包不会包含你的 `config.json`、token、日志、PID、SQLite 数据、补丁 JAR 或逆向研究材料。请勿把 14000、13980、13981 或 NapCat 端口暴露到公网。
+
+## 开源许可证
+
+Nyanya Gateway 采用 Apache License, Version 2.0，完整文本见包内 `LICENSE`。第三方资源和复用代码的归属见 `docs/ATTRIBUTION.md` 与 `THIRD-PARTY-LICENSE.txt`。

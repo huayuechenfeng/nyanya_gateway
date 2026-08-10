@@ -43,3 +43,7 @@ npm start
 详细配置、升级和排障见 [使用与配置手册](docs/USAGE.md)，客户端协议见 [Nyanya Protocol v1](docs/PROTOCOL.md)。如果你实际使用的是原版 J2ME/Symbian QQ，可以先阅读包内的 [旧手机零基础教程](docs/BEGINNER-GUIDE.md)，然后改用 Gateway Class 发布包。
 
 本包不包含本机配置、token、日志、PID、SQLite 数据或旧 QQ 研究材料。协议默认是局域网明文，请只在可信家庭网络或可信 VPN 中使用，不要把网关或 NapCat 端口暴露到公网。
+
+## 开源许可证
+
+Nyanya Gateway 采用 Apache License, Version 2.0，完整文本见包内 `LICENSE`。第三方资源和复用代码的归属见 `docs/ATTRIBUTION.md` 与 `THIRD-PARTY-LICENSE.txt`。

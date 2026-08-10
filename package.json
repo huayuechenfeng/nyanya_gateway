@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Nyanya Gateway and its first-party and compatibility clients",
+  "license": "Apache-2.0",
   "workspaces": [
     "gateway",
     "nyanya-gateway-class",

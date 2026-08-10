@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Nyanya Gateway compatibility bridge for original J2ME/Symbian QQ clients",
+  "license": "Apache-2.0",
   "scripts": {
     "start": "node server.js",
     "test": "node self-test.js",

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Nyanya clients LAN gateway backed by NapCat/OneBot v11",
+  "license": "Apache-2.0",
   "scripts": {
     "start": "node server.js",
     "test": "node self-test.js"
