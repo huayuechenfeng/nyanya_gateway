@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 
-echo ÕýÔÚ²éÕÒÕ¼ÓÃ 14000 ¶Ë¿ÚµÄÍø¹Ø½ø³Ì...
+echo æ­£åœ¨æŸ¥æ‰¾å ç”¨ 14000 ç«¯å£çš„ç½‘å…³è¿›ç¨‹...
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":14000 .*LISTENING"') do taskkill /F /PID %%a >nul 2>nul
-echo Íê³É¡£
+echo å®Œæˆã€‚
 pause >nul
