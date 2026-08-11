@@ -19,6 +19,7 @@ if ([string]::IsNullOrEmpty($node)) {
     throw 'Node.js was not found. Install Node.js LTS (22.5 or newer) from https://nodejs.org/ and try again.'
 }
 $toolDependencies = @(
+    'client-jar-analyzer.js',
     'class-endpoint-patcher.js',
     'class-methodref-patcher.js',
     'class-direct-http-patcher.js',
@@ -86,21 +87,58 @@ try {
 }
 
 $replacementUri = "socket://${ServerAddress}:$Port"
+$analysisOutput = & $node (Join-Path $PSScriptRoot 'client-jar-analyzer.js') $stagingRoot $ServerAddress
+if ($LASTEXITCODE -ne 0) { throw 'Client JAR structure analysis failed.' }
+$clientAnalysis = $analysisOutput | ConvertFrom-Json
+if (@($clientAnalysis.signedEntries).Count -gt 0) {
+    throw "Signed JAR files are not supported because modification invalidates the signature: $(@($clientAnalysis.signedEntries) -join ', ')"
+}
+if ([int]$clientAnalysis.socketEndpointCount -lt 1) {
+    throw 'No replaceable socket://...:14000 endpoint was found in this JAR.'
+}
+
 $patchOutput = & $node (Join-Path $PSScriptRoot 'class-endpoint-patcher.js') $stagingRoot $replacementUri
 if ($LASTEXITCODE -ne 0) { throw 'Class endpoint patching failed.' }
 $patchSummary = $patchOutput | ConvertFrom-Json
 
 $aoClass = Join-Path $stagingRoot 'ao.class'
 $httpDescriptor = '(Ljava/lang/String;)Ljavax/microedition/io/HttpConnection;'
-$methodPatchOutput = & $node (Join-Path $PSScriptRoot 'class-methodref-patcher.js') `
-    $aoClass 'http' 'jl' 'open' $httpDescriptor
-if ($LASTEXITCODE -ne 0) { throw 'Class method-reference patching failed.' }
-$methodPatchSummary = $methodPatchOutput | ConvertFrom-Json
-
 $httpClass = Join-Path $stagingRoot 'http.class'
-$directHttpOutput = & $node (Join-Path $PSScriptRoot 'class-direct-http-patcher.js') $httpClass $aoClass
-if ($LASTEXITCODE -ne 0) { throw 'Direct J2ME HTTP patching failed.' }
-$directHttpSummary = $directHttpOutput | ConvertFrom-Json
+$methodPatchSummary = $null
+$directHttpSummary = $null
+$methodReferenceDescription = 'Not required for this client profile'
+$directHttpDescription = 'Not patched; public HTTP endpoints are disabled by the local-network guard'
+
+switch ([string]$clientAnalysis.profile.profileId) {
+    'mobileqq-12.0.16-http-helper' {
+        if ([bool]$clientAnalysis.profile.patches.methodReference) {
+            $methodPatchOutput = & $node (Join-Path $PSScriptRoot 'class-methodref-patcher.js') `
+                $aoClass 'http' 'jl' 'open' $httpDescriptor
+            if ($LASTEXITCODE -ne 0) { throw 'Class method-reference patching failed.' }
+            $methodPatchSummary = $methodPatchOutput | ConvertFrom-Json
+            $methodReferenceDescription = "$($methodPatchSummary.from) -> $($methodPatchSummary.to)"
+        }
+        else {
+            $methodReferenceDescription = 'http.open(String) reference already present'
+        }
+        $directHttpOutput = & $node (Join-Path $PSScriptRoot 'class-direct-http-patcher.js') `
+            $httpClass $aoClass
+        if ($LASTEXITCODE -ne 0) { throw 'Direct J2ME HTTP patching failed.' }
+        $directHttpSummary = $directHttpOutput | ConvertFrom-Json
+        $directHttpDescription = "http helper replaced with Connector.open(String); ao proxy flag forced off at bytecode $($directHttpSummary.proxyFlagOffset)"
+    }
+    'mobileqq-12.0.16-connector-direct' {
+        $directHttpOutput = & $node (Join-Path $PSScriptRoot 'class-direct-http-patcher.js') `
+            '--ao-only' $aoClass
+        if ($LASTEXITCODE -ne 0) { throw 'Direct J2ME HTTP mode patching failed.' }
+        $directHttpSummary = $directHttpOutput | ConvertFrom-Json
+        $methodReferenceDescription = 'Connector.open(String) is already used directly'
+        $directHttpDescription = "existing Connector.open(String); ao proxy flag forced off at bytecode $($directHttpSummary.proxyFlagOffset)"
+    }
+    default {
+        $methodReferenceDescription = 'Skipped in experimental TCP core mode'
+    }
+}
 
 $mobileBase = if ($MobilePort -eq 80) {
     "http://${ServerAddress}"
@@ -108,14 +146,26 @@ $mobileBase = if ($MobilePort -eq 80) {
 else {
     "http://${ServerAddress}:$MobilePort"
 }
-$groupWebOutput = & $node (Join-Path $PSScriptRoot 'class-group-web-patcher.js') `
-    $stagingRoot $mobileBase
-if ($LASTEXITCODE -ne 0) { throw 'J2ME group web-entry patching failed.' }
-$groupWebSummary = $groupWebOutput | ConvertFrom-Json
+$groupWebSummary = $null
+if ([bool]$clientAnalysis.profile.patches.groupWeb) {
+    $groupWebOutput = & $node (Join-Path $PSScriptRoot 'class-group-web-patcher.js') `
+        $stagingRoot $mobileBase
+    if ($LASTEXITCODE -ne 0) { throw 'J2ME group web-entry patching failed.' }
+    $groupWebSummary = $groupWebOutput | ConvertFrom-Json
+}
 
-$guardOutput = & $node (Join-Path $PSScriptRoot 'local-network-guard.js') $stagingRoot $ServerAddress
+$guardOutput = & $node (Join-Path $PSScriptRoot 'local-network-guard.js') `
+    '--allow-empty' $stagingRoot $ServerAddress
 if ($LASTEXITCODE -ne 0) { throw 'Private-network guard patching failed.' }
 $guardSummary = $guardOutput | ConvertFrom-Json
+
+$postAnalysisOutput = & $node (Join-Path $PSScriptRoot 'client-jar-analyzer.js') `
+    $stagingRoot $ServerAddress
+if ($LASTEXITCODE -ne 0) { throw 'Patched client network-safety verification failed.' }
+$postAnalysis = $postAnalysisOutput | ConvertFrom-Json
+if ([int]$postAnalysis.externalNetworkLiteralCount -ne 0) {
+    throw "Patched client still contains $($postAnalysis.externalNetworkLiteralCount) external network literals."
+}
 
 $manifestPath = Join-Path $stagingRoot 'META-INF\MANIFEST.MF'
 if (-not (Test-Path -LiteralPath $manifestPath)) { throw 'Patched staging tree has no manifest.' }
@@ -173,14 +223,26 @@ $outputHash = (Get-FileHash -LiteralPath $outputJar -Algorithm SHA256).Hash
 [PSCustomObject]@{
     SourceSHA256 = $sourceHash
     OutputSHA256 = $outputHash
+    ClientName = [string]$clientAnalysis.manifest.'MIDlet-Name'
+    ClientVersion = [string]$clientAnalysis.manifest.'MIDlet-Version'
+    PatchProfile = [string]$clientAnalysis.profile.displayName
+    SupportLevel = [string]$clientAnalysis.profile.supportLevel
+    Warnings = if (@($clientAnalysis.profile.warnings).Count) {
+        @($clientAnalysis.profile.warnings) -join ' '
+    } else { 'None' }
     Replacement = $patchSummary.replacement
     Replacements = $patchSummary.replacements
-    MethodReference = "$($methodPatchSummary.from) -> $($methodPatchSummary.to)"
-    DirectHttp = "Connector.open(String); ao proxy flag forced off at bytecode $($directHttpSummary.proxyFlagOffset), direct target $($directHttpSummary.directBlockOffset)"
-    MobileGroupPage = $mobileBase + '/forward.jsp?bid=342'
-    ModifiedClasses = (@($patchSummary.modifiedFiles) + @($methodPatchSummary.file) + @($directHttpSummary.file) +
-        @($directHttpSummary.aoFile) +
-        @($groupWebSummary.modifiedFiles) + @($guardSummary.modifiedFiles) |
+    MethodReference = $methodReferenceDescription
+    DirectHttp = $directHttpDescription
+    MobileGroupPage = if ($null -ne $groupWebSummary) {
+        $mobileBase + '/forward.jsp?bid=342'
+    } else { 'Not patched for this client profile' }
+    NetworkGuardReplacements = [int]$guardSummary.replacements
+    ModifiedClasses = (@($patchSummary.modifiedFiles) +
+        $(if ($null -ne $methodPatchSummary) { @($methodPatchSummary.file) }) +
+        $(if ($null -ne $directHttpSummary) { @($directHttpSummary.file) + @($directHttpSummary.aoFile) }) +
+        $(if ($null -ne $groupWebSummary) { @($groupWebSummary.modifiedFiles) }) +
+        @($guardSummary.modifiedFiles) |
         Sort-Object -Unique) -join ', '
     Jar = $outputJar
     Jad = $outputJad

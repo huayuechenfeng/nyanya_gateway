@@ -155,7 +155,7 @@ function patchDirectHttpOpen(input) {
   };
 }
 
-function patchAoDirectMode(input) {
+function inspectAoDirectMode(input) {
   const constantPool = parseConstantPool(input);
   const { entries } = constantPool;
   const entryAt = (index, tag) => {
@@ -169,16 +169,6 @@ function patchAoDirectMode(input) {
     const entry = entryAt(index, 12);
     return { name: utf8(entry.nameIndex), descriptor: utf8(entry.descriptorIndex) };
   };
-  const directReferences = entries.filter((entry) => {
-    if (!entry || entry.tag !== 10) return false;
-    const member = nameAndType(entry.nameAndTypeIndex);
-    return className(entry.classIndex) === 'http' && member.name === 'open'
-      && member.descriptor === '(Ljava/lang/String;)Ljavax/microedition/io/HttpConnection;';
-  });
-  if (directReferences.length !== 1) {
-    throw new Error(`expected one http.open reference in ao.class, found ${directReferences.length}`);
-  }
-
   let position = constantPool.endPosition + 6;
   const interfaceCount = input.readUInt16BE(position);
   position += 2 + interfaceCount * 2;
@@ -209,39 +199,98 @@ function patchAoDirectMode(input) {
   if (codeEnd > codeAttribute.end) throw new Error('truncated ao HTTP method code');
   const code = input.subarray(codeStart, codeEnd);
 
-  const directCalls = [];
-  for (let index = 0; index + 2 < code.length; index += 1) {
-    if (code[index] === 0xB8 && code.readUInt16BE(index + 1) === directReferences[0].index) {
-      directCalls.push(index);
-    }
-  }
-  if (directCalls.length !== 1 || directCalls[0] < 1) {
-    throw new Error(`expected one direct http.open call, found ${directCalls.length}`);
-  }
-  const directBlock = directCalls[0] - 1;
-  const branches = [];
+  const candidates = [];
   for (let index = 0; index + 3 < code.length; index += 1) {
     if (code[index] !== 0x1C || code[index + 1] !== 0x99) continue; // iload_2; ifeq
-    const target = index + 1 + code.readInt16BE(index + 2);
-    if (target === directBlock) branches.push(index);
+    const directBlock = index + 1 + code.readInt16BE(index + 2);
+    if (directBlock < 0 || directBlock >= code.length) continue;
+
+    let callOffset;
+    if (code[directBlock] >= 0x2A && code[directBlock] <= 0x2D) {
+      callOffset = directBlock + 1; // aload_0 .. aload_3; invokestatic
+    }
+    else if (code[directBlock] === 0x19 && directBlock + 1 < code.length) {
+      callOffset = directBlock + 2; // aload index; invokestatic
+    }
+    else {
+      continue;
+    }
+    if (callOffset + 2 >= code.length || code[callOffset] !== 0xB8) continue;
+    const reference = entries[code.readUInt16BE(callOffset + 1)];
+    if (!reference || reference.tag !== 10) continue;
+    const owner = className(reference.classIndex);
+    const member = nameAndType(reference.nameAndTypeIndex);
+    const helperDescriptor = '(Ljava/lang/String;)Ljavax/microedition/io/HttpConnection;';
+    const connectorDescriptor = '(Ljava/lang/String;)Ljavax/microedition/io/Connection;';
+    let routeKind;
+    if (owner === 'http' && member.name === 'jl' && member.descriptor === helperDescriptor) {
+      routeKind = 'http-jl-helper';
+    }
+    else if (owner === 'http' && member.name === 'open' && member.descriptor === helperDescriptor) {
+      routeKind = 'http-open-helper';
+    }
+    else if (owner === 'javax/microedition/io/Connector' && member.name === 'open'
+        && member.descriptor === connectorDescriptor) {
+      routeKind = 'connector-direct';
+    }
+    else {
+      continue;
+    }
+    candidates.push({
+      branchOffset: index,
+      directBlockOffset: directBlock,
+      callOffset,
+      referenceIndex: reference.index,
+      owner,
+      name: member.name,
+      descriptor: member.descriptor,
+      routeKind,
+    });
   }
-  if (branches.length !== 1) {
-    throw new Error(`expected one proxy-mode branch to direct block, found ${branches.length}`);
+  if (candidates.length !== 1) {
+    throw new Error(`expected one recognized proxy-mode branch to a direct HTTP block, found ${candidates.length}`);
+  }
+
+  return { ...candidates[0], codeStart };
+}
+
+function patchAoDirectMode(input) {
+  const inspection = inspectAoDirectMode(input);
+  if (inspection.routeKind === 'http-jl-helper') {
+    throw new Error('ao.class still calls http.jl(String); repair the method reference before forcing direct mode');
   }
 
   const output = Buffer.from(input);
-  const branch = branches[0];
   // Keep the original iload_2/ifeq control-flow graph and every bytecode
   // offset intact for CLDC's precomputed StackMap attribute. Replacing only
   // iload_2 with iconst_0 makes the existing ifeq always take the direct path
   // without turning the proxy block into verifier-visible unreachable code.
-  output[codeStart + branch] = 0x03; // iconst_0
-  return { output, branchOffset: branch, directBlockOffset: directBlock };
+  output[inspection.codeStart + inspection.branchOffset] = 0x03; // iconst_0
+  return {
+    output,
+    routeKind: inspection.routeKind,
+    branchOffset: inspection.branchOffset,
+    directBlockOffset: inspection.directBlockOffset,
+  };
 }
 
 function main(args) {
+  if (args.length === 2 && args[0] === '--ao-only') {
+    const aoFile = path.resolve(args[1]);
+    const aoResult = patchAoDirectMode(fs.readFileSync(aoFile));
+    fs.writeFileSync(aoFile, aoResult.output);
+    process.stdout.write(JSON.stringify({
+      file: path.basename(aoFile),
+      aoFile: path.basename(aoFile),
+      mode: 'ao-only',
+      routeKind: aoResult.routeKind,
+      proxyFlagOffset: aoResult.branchOffset,
+      directBlockOffset: aoResult.directBlockOffset,
+    }) + '\n');
+    return;
+  }
   if (args.length !== 2) {
-    throw new Error('usage: class-direct-http-patcher.js HTTP_CLASS AO_CLASS');
+    throw new Error('usage: class-direct-http-patcher.js HTTP_CLASS AO_CLASS | --ao-only AO_CLASS');
   }
   const file = path.resolve(args[0]);
   const aoFile = path.resolve(args[1]);
@@ -252,6 +301,8 @@ function main(args) {
   process.stdout.write(JSON.stringify({
     file: path.basename(file),
     aoFile: path.basename(aoFile),
+    mode: 'helper-and-ao',
+    routeKind: aoResult.routeKind,
     connectorReference: result.connectorReference,
     httpConnectionClass: result.httpConnectionClass,
     oldCodeAttributeLength: result.oldCodeAttributeLength,
@@ -261,11 +312,13 @@ function main(args) {
   }) + '\n');
 }
 
-try {
-  main(process.argv.slice(2));
-} catch (error) {
-  process.stderr.write('Direct HTTP patch failed: ' + error.message + '\n');
-  process.exitCode = 1;
+if (require.main === module) {
+  try {
+    main(process.argv.slice(2));
+  } catch (error) {
+    process.stderr.write('Direct HTTP patch failed: ' + error.message + '\n');
+    process.exitCode = 1;
+  }
 }
 
-module.exports = { patchAoDirectMode, patchDirectHttpOpen };
+module.exports = { inspectAoDirectMode, patchAoDirectMode, patchDirectHttpOpen };

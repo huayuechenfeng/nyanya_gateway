@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "start": "node server.js",
-    "test": "node self-test.js",
+    "test": "node self-test.js && node tests/client-patcher-self-test.js",
     "test:legacy": "node legacy/self-test.js"
   },
   "engines": {

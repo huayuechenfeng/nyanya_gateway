@@ -12,6 +12,7 @@ nyanya-gateway-class/legacy/data/
 .migration-backup/
 docs/internal/
 research/legacy-qq/
+local-client-jars/
 release/
 node_modules/
 *.log
