@@ -81,9 +81,13 @@ function classFiles(root) {
 }
 
 function main(args) {
-  if (args.length !== 2) throw new Error('usage: local-network-guard.js STAGING_ROOT ALLOWED_HOST');
-  const root = path.resolve(args[0]);
-  const allowedHost = args[1];
+  const allowEmpty = args[0] === '--allow-empty';
+  const values = allowEmpty ? args.slice(1) : args;
+  if (values.length !== 2) {
+    throw new Error('usage: local-network-guard.js [--allow-empty] STAGING_ROOT ALLOWED_HOST');
+  }
+  const root = path.resolve(values[0]);
+  const allowedHost = values[1];
   const modifiedFiles = [];
   let replacements = 0;
   for (const file of classFiles(root)) {
@@ -103,14 +107,16 @@ function main(args) {
       replacements += 1;
     }
   }
-  if (replacements === 0) throw new Error('no external network literals were found');
+  if (replacements === 0 && !allowEmpty) throw new Error('no external network literals were found');
   process.stdout.write(JSON.stringify({ modifiedFiles, replacements }) + '\n');
 }
 
-try { main(process.argv.slice(2)); }
-catch (error) {
-  process.stderr.write(`Local network guard failed: ${error.message}\n`);
-  process.exitCode = 1;
+if (require.main === module) {
+  try { main(process.argv.slice(2)); }
+  catch (error) {
+    process.stderr.write(`Local network guard failed: ${error.message}\n`);
+    process.exitCode = 1;
+  }
 }
 
 module.exports = { makeNetworkRestricted, patchClass };

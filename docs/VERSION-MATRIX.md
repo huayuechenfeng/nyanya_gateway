@@ -10,7 +10,7 @@
 | Nyanya Protocol | 1.0.0 | 线协议 v1 | 缺省 AUTH 版本按旧式 v1 处理；显式未知版本会拒绝 |
 | Nyanya J2ME Client | 0.1.0 | CLDC 1.1 / MIDP 2.0、Protocol v1 | 声明 `text`、`contacts`、`notice`、`offline` 能力；连接通用 Gateway 0.1.0 |
 | Nyanya Gateway Class | 0.1.0 | Node.js 22.5+、OneBot v11、旧 QQ 二进制协议 | 使用 Core 0.1.0 与 OneBot Adapter 0.1.0；不使用 Nyanya Protocol |
-| 原版 J2ME/Symbian QQ | 外部客户端版本 | 客户端固有旧 QQ 协议 | 只连接 Gateway Class；不连接通用 Gateway |
+| 原版 J2ME/Symbian QQ | 外部客户端版本 | 客户端固有旧 QQ 协议 | 只连接 Gateway Class；J2ME 推荐 QQ2009 及以上，QQ2008 及以下可能无法登录；不连接通用 Gateway |
 
 ## 发布组合
 
