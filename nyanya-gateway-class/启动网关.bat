@@ -1,4 +1,5 @@
 @echo off
+rem Keep this file in CRLF; cmd.exe can misparse UTF-8 batch files with LF-only endings.
 setlocal
 cd /d "%~dp0"
 
