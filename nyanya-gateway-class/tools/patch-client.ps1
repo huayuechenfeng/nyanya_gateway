@@ -18,6 +18,69 @@ $node = if ($systemNode) { $systemNode.Source } else { $null }
 if ([string]::IsNullOrEmpty($node)) {
     throw 'Node.js was not found. Install Node.js LTS (22.5 or newer) from https://nodejs.org/ and try again.'
 }
+
+function Invoke-NodeJsonTool {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Script,
+        [string[]]$Arguments = @()
+    )
+
+    # Do not invoke Node with PowerShell's native-command pipeline here. On
+    # some Windows PowerShell/code-page combinations, long UTF-8 JSON output
+    # from a JAR containing legacy Chinese constants is converted into a
+    # malformed string before ConvertFrom-Json sees it.
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $node
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $argumentListProperty = $startInfo.PSObject.Properties['ArgumentList']
+    if ($null -ne $argumentListProperty) {
+        [void]$startInfo.ArgumentList.Add($Script)
+        foreach ($argument in $Arguments) {
+            [void]$startInfo.ArgumentList.Add([string]$argument)
+        }
+    }
+    else {
+        $allArguments = @($Script) + @($Arguments)
+        $startInfo.Arguments = ($allArguments | ForEach-Object {
+            '"' + ([string]$_).Replace('"', '\"') + '"'
+        }) -join ' '
+    }
+    $startInfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+    $startInfo.StandardErrorEncoding = [System.Text.Encoding]::UTF8
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    try {
+        if (-not $process.Start()) { throw "Unable to start Node.js tool: $Script" }
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        if ($process.ExitCode -ne 0) {
+            $detail = $stderr.Trim()
+            if ([string]::IsNullOrEmpty($detail)) { $detail = "exit code $($process.ExitCode)" }
+            throw "Node.js tool failed: $detail"
+        }
+        if ([string]::IsNullOrWhiteSpace($stdout)) {
+            throw 'Node.js tool returned no JSON output.'
+        }
+        try {
+            return ($stdout.Trim() | ConvertFrom-Json)
+        }
+        catch {
+            throw "Node.js tool returned invalid JSON: $($_.Exception.Message)"
+        }
+    }
+    finally {
+        $process.Dispose()
+    }
+}
+
 $toolDependencies = @(
     'client-jar-analyzer.js',
     'class-endpoint-patcher.js',
@@ -87,9 +150,8 @@ try {
 }
 
 $replacementUri = "socket://${ServerAddress}:$Port"
-$analysisOutput = & $node (Join-Path $PSScriptRoot 'client-jar-analyzer.js') $stagingRoot $ServerAddress
-if ($LASTEXITCODE -ne 0) { throw 'Client JAR structure analysis failed.' }
-$clientAnalysis = $analysisOutput | ConvertFrom-Json
+$clientAnalysis = Invoke-NodeJsonTool `
+    (Join-Path $PSScriptRoot 'client-jar-analyzer.js') @($stagingRoot, $ServerAddress)
 if (@($clientAnalysis.signedEntries).Count -gt 0) {
     throw "Signed JAR files are not supported because modification invalidates the signature: $(@($clientAnalysis.signedEntries) -join ', ')"
 }
@@ -97,9 +159,8 @@ if ([int]$clientAnalysis.socketEndpointCount -lt 1) {
     throw 'No replaceable socket://...:14000 endpoint was found in this JAR.'
 }
 
-$patchOutput = & $node (Join-Path $PSScriptRoot 'class-endpoint-patcher.js') $stagingRoot $replacementUri
-if ($LASTEXITCODE -ne 0) { throw 'Class endpoint patching failed.' }
-$patchSummary = $patchOutput | ConvertFrom-Json
+$patchSummary = Invoke-NodeJsonTool `
+    (Join-Path $PSScriptRoot 'class-endpoint-patcher.js') @($stagingRoot, $replacementUri)
 
 $aoClass = Join-Path $stagingRoot 'ao.class'
 $httpDescriptor = '(Ljava/lang/String;)Ljavax/microedition/io/HttpConnection;'
@@ -112,26 +173,23 @@ $directHttpDescription = 'Not patched; public HTTP endpoints are disabled by the
 switch ([string]$clientAnalysis.profile.profileId) {
     'mobileqq-12.0.16-http-helper' {
         if ([bool]$clientAnalysis.profile.patches.methodReference) {
-            $methodPatchOutput = & $node (Join-Path $PSScriptRoot 'class-methodref-patcher.js') `
-                $aoClass 'http' 'jl' 'open' $httpDescriptor
-            if ($LASTEXITCODE -ne 0) { throw 'Class method-reference patching failed.' }
-            $methodPatchSummary = $methodPatchOutput | ConvertFrom-Json
+            $methodPatchSummary = Invoke-NodeJsonTool `
+                (Join-Path $PSScriptRoot 'class-methodref-patcher.js') `
+                @($aoClass, 'http', 'jl', 'open', $httpDescriptor)
             $methodReferenceDescription = "$($methodPatchSummary.from) -> $($methodPatchSummary.to)"
         }
         else {
             $methodReferenceDescription = 'http.open(String) reference already present'
         }
-        $directHttpOutput = & $node (Join-Path $PSScriptRoot 'class-direct-http-patcher.js') `
-            $httpClass $aoClass
-        if ($LASTEXITCODE -ne 0) { throw 'Direct J2ME HTTP patching failed.' }
-        $directHttpSummary = $directHttpOutput | ConvertFrom-Json
+        $directHttpSummary = Invoke-NodeJsonTool `
+            (Join-Path $PSScriptRoot 'class-direct-http-patcher.js') `
+            @($httpClass, $aoClass)
         $directHttpDescription = "http helper replaced with Connector.open(String); ao proxy flag forced off at bytecode $($directHttpSummary.proxyFlagOffset)"
     }
     'mobileqq-12.0.16-connector-direct' {
-        $directHttpOutput = & $node (Join-Path $PSScriptRoot 'class-direct-http-patcher.js') `
-            '--ao-only' $aoClass
-        if ($LASTEXITCODE -ne 0) { throw 'Direct J2ME HTTP mode patching failed.' }
-        $directHttpSummary = $directHttpOutput | ConvertFrom-Json
+        $directHttpSummary = Invoke-NodeJsonTool `
+            (Join-Path $PSScriptRoot 'class-direct-http-patcher.js') `
+            @('--ao-only', $aoClass)
         $methodReferenceDescription = 'Connector.open(String) is already used directly'
         $directHttpDescription = "existing Connector.open(String); ao proxy flag forced off at bytecode $($directHttpSummary.proxyFlagOffset)"
     }
@@ -148,21 +206,17 @@ else {
 }
 $groupWebSummary = $null
 if ([bool]$clientAnalysis.profile.patches.groupWeb) {
-    $groupWebOutput = & $node (Join-Path $PSScriptRoot 'class-group-web-patcher.js') `
-        $stagingRoot $mobileBase
-    if ($LASTEXITCODE -ne 0) { throw 'J2ME group web-entry patching failed.' }
-    $groupWebSummary = $groupWebOutput | ConvertFrom-Json
+    $groupWebSummary = Invoke-NodeJsonTool `
+        (Join-Path $PSScriptRoot 'class-group-web-patcher.js') `
+        @($stagingRoot, $mobileBase)
 }
 
-$guardOutput = & $node (Join-Path $PSScriptRoot 'local-network-guard.js') `
-    '--allow-empty' $stagingRoot $ServerAddress
-if ($LASTEXITCODE -ne 0) { throw 'Private-network guard patching failed.' }
-$guardSummary = $guardOutput | ConvertFrom-Json
+$guardSummary = Invoke-NodeJsonTool `
+    (Join-Path $PSScriptRoot 'local-network-guard.js') `
+    @('--allow-empty', $stagingRoot, $ServerAddress)
 
-$postAnalysisOutput = & $node (Join-Path $PSScriptRoot 'client-jar-analyzer.js') `
-    $stagingRoot $ServerAddress
-if ($LASTEXITCODE -ne 0) { throw 'Patched client network-safety verification failed.' }
-$postAnalysis = $postAnalysisOutput | ConvertFrom-Json
+$postAnalysis = Invoke-NodeJsonTool `
+    (Join-Path $PSScriptRoot 'client-jar-analyzer.js') @($stagingRoot, $ServerAddress)
 if ([int]$postAnalysis.externalNetworkLiteralCount -ne 0) {
     throw "Patched client still contains $($postAnalysis.externalNetworkLiteralCount) external network literals."
 }
