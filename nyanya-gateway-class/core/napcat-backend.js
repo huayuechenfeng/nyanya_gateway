@@ -606,6 +606,12 @@ class NapCatBackend {
     }
     if (message.chatType === 'private') {
       const from = Number(message.sender.id);
+      // 好友通过时 QQ 自动发的系统文案，老客户端会把它当普通私聊写进本地 RMS，
+      // 登录/重连时反复重放弹「好友通过」通知。这里从源头过滤，不落库不推送。
+      if (message.text && message.text.startsWith('我们已成功添加为好友')) {
+        this.logger.log(`[napcat] 已过滤好友通过文案 from=${from}: ${message.text}`);
+        return;
+      }
       const images = await this._ingestImages({
         chatType: 'private', segments, fromUin: from, toUin: this.selfId,
       });
@@ -777,6 +783,12 @@ class NapCatBackend {
 
   _onNotice(notice) {
     if (notice.refreshContacts) this.refreshMirror().catch(() => {});
+    // 好友通过系统通知（「新好友已添加」）不推给老客户端：客户端会在登录/重连时
+    // 重放本地 RMS 里的「好友通过」记录反复弹通知，这里从源头掐掉新的推送。
+    if (notice.noticeType === 'friend_add') {
+      this.logger.log(`[napcat] 已过滤好友通过系统通知: ${notice.text}`);
+      return;
+    }
     if (this.server.pushSystemNotice) {
       this.server.pushSystemNotice(this.selfId, notice.text, 'napcat_' + notice.noticeType);
     }
