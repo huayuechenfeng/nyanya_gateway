@@ -131,6 +131,9 @@ function loadConfig(overrides) {
     // 媒体/手机 WAP 服务（降级使用，图片语音只存本地不上传真实 QQ）
     mobileHost: env.NYANYA_MOBILE_HOST || fileCfg.mobileHost || '0.0.0.0',
     mobilePort: Number(env.NYANYA_MOBILE_PORT || fileCfg.mobilePort || 13981),
+    // QQ 空间说说的数据源（qzone-bridge 独立服务，家里部署、经 frp 映射到本机）。
+    // 只用于「看说说列表」（get_emotion_list）；发说说仍走 NapCat send_qzone_msg。
+    qzoneBridgeUrl: env.NYANYA_QZONE_BRIDGE_URL || fileCfg.qzoneBridgeUrl || 'http://127.0.0.1:5700',
     // 收到 NapCat 图片时，推给老客户端的链接里用的主机。留空则自动探测局域网 IP；
     // 多网卡（VMware/虚拟网卡）可能挑错，这时在这里写死手机能访问的那个 IP。
     mediaPublicHost: env.NYANYA_MEDIA_PUBLIC_HOST || fileCfg.mediaPublicHost || '',

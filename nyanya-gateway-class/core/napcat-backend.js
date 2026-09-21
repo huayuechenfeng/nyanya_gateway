@@ -310,6 +310,37 @@ class NapCatBackend {
     return { ok: true, action, messageId: result.data && result.data.message_id };
   }
 
+  // ---------- QQ 空间说说：老客户端 WAP 表单 -> NapCat ----------
+  // NapCat 只暴露 send_qzone_msg（发说说）和 delete_qzone_msg（删说说）两个 action，
+  // 没有「获取说说列表」接口（get_qzone_msg_list 只存在于文档注释里，代码未实现）。
+  // 所以这里只做「发纯文字说说」；图片需要 uploadImageToQzone 走 base64 上传，
+  // 而老客户端 WML 表单无法选文件，暂不支持带图。
+  async sendQzoneMsg(content) {
+    const text = String(content || '').trim();
+    if (!text) return { ok: false, code: 'bad_params', error: 'content required' };
+    if (!this.onebot) return { ok: false, code: 'onebot', error: 'not connected' };
+    let result;
+    try {
+      result = await this.onebot.sendAction('send_qzone_msg', {
+        content: text,
+        images: [],
+        ugc_right: 1, // 1 = 所有人可见
+        target_uins: [],
+      });
+    } catch (err) {
+      this.logger.error(`[qzone] 发说说抛异常: ${err.message}`);
+      return { ok: false, code: 'onebot', error: err.message };
+    }
+    if (!result || !result.ok) {
+      const reason = result && result.error ? result.error : 'send failed';
+      this.logger.error(`[qzone] 发说说失败: ${reason}`);
+      return { ok: false, code: 'onebot', error: reason };
+    }
+    const tid = result.data && (result.data.tid || (result.data.data && result.data.data.tid));
+    this.logger.log(`[qzone] 发说说成功 tid=${tid || '?'}: ${text.slice(0, 40)}`);
+    return { ok: true, tid };
+  }
+
   enqueueOffline(from, to, text) {
     return this.offlineQueue.enqueue(to, {
       from: Number(from),

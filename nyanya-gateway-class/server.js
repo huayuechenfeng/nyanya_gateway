@@ -11,6 +11,7 @@ const { createQQServer } = require('./legacy/server');
 const { createMobileGroupServer } = require('./legacy/mobile-group-server');
 const { MediaTransferService } = require('./legacy/media-service');
 const { NapCatBackend, resolveMediaTarget } = require('./core/napcat-backend');
+const { createQzoneBridge } = require('./core/qzone-bridge');
 const { replayGroupHistory } = require('./core/group-history');
 const { replayPrivateHistory } = require('./core/private-history');
 const { createReplayCursors } = require('./core/replay-cursor');
@@ -343,12 +344,23 @@ function main() {
 
   const adminServer = createAdminServer({ config, store, backend, logger: uiLogger, logBuffer });
 
+  // qzone-bridge 客户端：看说说列表用（发说说仍走 backend.sendQzoneMsg）。
+  const qzoneBridge = createQzoneBridge({ baseUrl: config.qzoneBridgeUrl, logger });
+
   const mobileServer = createMobileGroupServer({
     store,
     logger,
     mediaService,
     requestEvent: 'mobile_http_request',
     pushGroupDiscovery: () => {},
+    sendQzoneMsg: (content) => backend
+      ? backend.sendQzoneMsg(content)
+      : Promise.resolve({ ok: false, code: 'not_available', error: 'NapCat 未连接' }),
+    getQzoneList: () => qzoneBridge.getMyPosts(),
+    getQzoneFriends: () => qzoneBridge.getFriendFeedList(),
+    getQzoneComments: (tid) => qzoneBridge.getComments(tid),
+    sendQzoneLike: (tid) => qzoneBridge.sendLike(tid),
+    sendQzoneComment: (tid, content) => qzoneBridge.sendComment(tid, content),
   });
 
   // ---------- 启动 ----------
