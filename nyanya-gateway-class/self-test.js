@@ -8,7 +8,11 @@ const path = require('node:path');
 const protocol = require('./legacy/protocol');
 const { AccountStore, defaultData } = require('./legacy/store');
 const { createQQServer } = require('./legacy/server');
-const { NapCatBackend } = require('./core/napcat-backend');
+const { createMobileGroupServer } = require('./legacy/mobile-group-server');
+const { NapCatBackend, resolveMediaTarget } = require('./core/napcat-backend');
+const { parseHistoricalMedia, replayGroupHistory } = require('./core/group-history');
+const { replayPrivateHistory } = require('./core/private-history');
+const { createReplayCursors } = require('./core/replay-cursor');
 const { loadConfig } = require('./config');
 const { OfflineDeliveryQueue } = require('../packages/gateway-core');
 
@@ -241,6 +245,10 @@ class MockOneBot {
       { user_id: 20002, nickname: 'Alice' },
     ];
     this.started = false;
+    // 让指定 action 返回 not-ok，用来验证"失败的 RPC 不得当成空列表"
+    this.failActions = new Set();
+    // 收图用例用：get_image 返回的本地文件路径；null 表示取不到图
+    this.imageFile = null;
   }
 
   onEvent(handler) {
@@ -267,6 +275,9 @@ class MockOneBot {
 
   sendAction(action, params) {
     this.actions.push({ action, params });
+    if (this.failActions.has(action)) {
+      return Promise.resolve({ ok: false, error: 'mock failure for ' + action });
+    }
     if (action === 'get_login_info') {
       return Promise.resolve({ ok: true, data: { user_id: this.selfId, nickname: this.nickname } });
     }
@@ -278,6 +289,11 @@ class MockOneBot {
     }
     if (action === 'get_group_member_list') {
       return Promise.resolve({ ok: true, data: this.members });
+    }
+    if (action === 'get_image') {
+      return Promise.resolve(this.imageFile
+        ? { ok: true, data: { file: this.imageFile } }
+        : { ok: false, error: 'mock has no image to hand out' });
     }
     if (action === 'send_private_msg' || action === 'send_group_msg') {
       this.sent.push({ action, params });
@@ -408,8 +424,30 @@ function assertSymbianGroupInfoLayout() {
   assert.equal(payload.readUInt32BE(membersOffset + 6), 20002);
 }
 
+// 登录响应报文里只有 4 字节的 IP 字段：config.loginPublicHost 只认合法 IPv4
+// 点分字面量，域名 / IPv6 / 越界 / 前导零 / 0.0.0.0 一律拒绝，由 server.js
+// 回退到自动探测出来的局域网 IP。
+function assertLoginAddressOverride() {
+  assert.equal(protocol.ipv4ToBuffer('192.168.1.3').toString('hex'), 'c0a80103');
+  assert.equal(protocol.ipv4ToBuffer(' 10.0.0.255 ').toString('hex'), '0a0000ff',
+    '首尾空白应被容忍');
+  assert.equal(protocol.ipv4ToBuffer('127.0.0.1').toString('hex'), '7f000001',
+    '本机地址合法（模拟器同机场景要用它）');
+  const rejected = [
+    'gateway.example.com', '::1', '1.2.3.256', '1.2.3', '1.2.3.4.5',
+    '1.2.3.04', '0.0.0.0', '', '   ', 'a.b.c.d', '1.2.-3.4',
+  ];
+  for (const value of rejected) {
+    assert.equal(protocol.ipv4ToBuffer(value), null, `应拒绝 ${JSON.stringify(value)}`);
+  }
+  for (const value of [null, undefined, 42, Buffer.from([1, 2, 3, 4])]) {
+    assert.equal(protocol.ipv4ToBuffer(value), null, '非字符串一律拒绝');
+  }
+}
+
 async function main() {
   assertSymbianGroupInfoLayout();
+  assertLoginAddressOverride();
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nyanya-test-'));
   const config = loadConfig({
     host: '127.0.0.1',
@@ -443,6 +481,11 @@ async function main() {
   const logger = { log: () => {}, error: () => {} };
   const events = [];
   const eventLogger = (event) => events.push(event);
+  // 群接收状态就绪的通知（回放挂点）：这里只记下来，不真的推消息，
+  // 免得回放帧混进后面那些"不该推送"的断言。回放本身在下面单独测。
+  const receiveReadyCalls = [];
+  // 登录就绪的通知（私聊回放挂点）：同样只记下来，回放本身在下面单独测。
+  const clientReadyCalls = [];
 
   const mock = new MockOneBot();
   let backend = null;
@@ -490,6 +533,7 @@ async function main() {
         }
       }
       target.pushSequence = (target.pushSequence + 1) & 0xFFFF;
+      const imageIds = (context && context.images) || [];
       const frame = protocol.createFrame({
         command: protocol.COMMAND_GROUP_MESSAGE,
         sequence: target.pushSequence,
@@ -502,6 +546,10 @@ async function main() {
             displayName: eventDisplayName
               || (sender ? sender.nickname : String(fromUin)),
             text,
+            images: imageIds,
+            imageText: context && context.imageText !== undefined
+              ? context.imageText : text,
+            timestamp: context && context.timestamp,
           }), target.sessionKey),
       });
       target.socket.write(frame);
@@ -530,6 +578,18 @@ async function main() {
     symbianGroupDiscoveryIntervalMs: 20,
     symbianGroupProbeLimit: 0,
     symbianGroupInfoProfile: 's60_qq2013',
+    onGroupReceiveReady: (state, reason) => {
+      receiveReadyCalls.push({
+        uin: state.uin,
+        reason,
+        filter: state.groupReceiveFilter ? Array.from(state.groupReceiveFilter) : null,
+      });
+    },
+    replayGroupHistoryDelayMs: 20,
+    onClientReady: (state, reason) => {
+      clientReadyCalls.push({ uin: state.uin, reason });
+    },
+    replayPrivateHistoryDelayMs: 20,
     deliverOutbox: (uin) => setTimeout(() => {
       const entries = outboxQueue.take(uin);
       for (const entry of entries) {
@@ -550,6 +610,7 @@ async function main() {
     logger,
     onebot: mock,
     offlineQueue: outboxQueue,
+    mediaBaseUrl: 'http://192.0.2.10:13981',
   });
   backend.start();
   await backend.refreshMirror();
@@ -583,6 +644,267 @@ async function main() {
     'only groupMemberMirrorLimit groups fetch member lists');
   mock.groups = originalGroups;
   await backend.refreshMirror();
+
+  // ---------- 回归：孤儿群消息不再让 save() 整体回滚 ----------
+  // 复现 2026-09-20 的故障：群消息留在库里，群却从镜像里消失。
+  // 旧实现会让 save() 撞 group_messages.group_id 外键并整体回滚，
+  // 库被冻结、联系人镜像永远刷不上。
+  {
+    const group = store.getGroup(30003);
+    assert.ok(group, 'group 30003 exists before the orphan regression test');
+    store.data.groupMessages.push({
+      id: store.data.nextGroupMessageId++, groupId: group.id, from: 20002,
+      text: 'orphan', sentAt: new Date().toISOString(), source: 'client',
+    });
+    // 把群从镜像里摘掉，上面那条群消息就成了孤儿
+    store.data.groups = store.data.groups.filter((value) => value.id !== group.id);
+    const report = store.save();
+    assert.ok(report.removed >= 1, 'orphan references are reconciled before save');
+    assert.ok(report.groupMessages >= 1, 'the orphan group message is reported');
+    assert.equal(store.data.groupMessages.some((item) => item.groupId === group.id), false,
+      'orphan group message is dropped from memory as well');
+    const reloaded = new AccountStore(path.join(tmpDir, 'nyanya.sqlite'));
+    assert.equal(reloaded.data.groupMessages.some((item) => item.groupId === group.id), false,
+      'orphan group message never reaches disk');
+    reloaded.close();
+    // 复原镜像，避免影响后续用例
+    await backend.refreshMirror();
+    assert.ok(store.getGroup(30003), 'group mirror restored after the orphan test');
+  }
+
+  // ---------- 回归：get_group_list 失效/返空时不得清空群列表 ----------
+  {
+    const groupsBefore = store.listGroups().length;
+    assert.ok(groupsBefore > 0, 'mirror has groups before the collapse test');
+    const goodGroups = mock.groups;
+    mock.groups = [];
+    let error = null;
+    try {
+      await backend.refreshMirror();
+    } catch (err) {
+      error = err;
+    }
+    assert.ok(error, 'empty get_group_list aborts the mirror refresh');
+    assert.match(error.message, /空列表/, 'the collapse error explains itself');
+    assert.equal(store.listGroups().length, groupsBefore,
+      'groups survive an empty get_group_list');
+    mock.failActions.add('get_group_list');
+    error = null;
+    try {
+      await backend.refreshMirror();
+    } catch (err) {
+      error = err;
+    }
+    mock.failActions.delete('get_group_list');
+    assert.ok(error && /get_group_list/.test(error.message),
+      'failed get_group_list aborts the mirror refresh');
+    assert.equal(store.listGroups().length, groupsBefore,
+      'groups survive a failed get_group_list');
+    mock.groups = goodGroups;
+    await backend.refreshMirror();
+  }
+
+  // ---------- 回归：get_friend_list 失败时不得清空好友 ----------
+  {
+    const friendsBefore = store.get(10001).friends.slice();
+    assert.ok(friendsBefore.length > 0, 'device has friends before the friend test');
+    mock.failActions.add('get_friend_list');
+    let error = null;
+    try {
+      await backend.refreshMirror();
+    } catch (err) {
+      error = err;
+    }
+    mock.failActions.delete('get_friend_list');
+    assert.ok(error && /get_friend_list/.test(error.message),
+      'failed get_friend_list aborts the mirror refresh');
+    assert.deepEqual(store.get(10001).friends, friendsBefore,
+      'friends survive a failed get_friend_list');
+  }
+
+  // ---------- 回归：NapCat 发来的图片落库，并把 [图片] 换成 WAP 链接 ----------
+  // 修复前收图方向等于零实现：段落到 fallback 成 [图片] 就结束了，
+  // 详见 .workbuddy/memory/2026-09-20.md 的收图诊断。
+  {
+    // 1x1 PNG 的文件头，够让 sniffImageMime 认出 png
+    const pngBytes = Buffer.from(
+      '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex');
+    const imageFile = path.join(tmpDir, 'napcat-image.png');
+    fs.writeFileSync(imageFile, pngBytes);
+    mock.imageFile = imageFile;
+
+    const pushed = [];
+    const originalDeliverText = qqServer.deliverText;
+    qqServer.deliverText = (from, to, text) => {
+      pushed.push({ from, to, text });
+      return true;
+    };
+    try {
+      mock.emit({
+        post_type: 'message',
+        message_type: 'private',
+        self_id: 10001,
+        user_id: 20002,
+        message_id: 70001,
+        time: 1700000000,
+        sender: { nickname: 'Alice' },
+        message: [{ type: 'image', data: { file: imageFile } }],
+      });
+      for (let wait = 0; wait < 200 && pushed.length === 0; wait += 1) await sleep(10);
+    } finally {
+      qqServer.deliverText = originalDeliverText;
+    }
+
+    assert.equal(pushed.length, 1, 'image message is pushed exactly once');
+    assert.match(pushed[0].text, /^【图片】http:\/\/192\.0\.2\.10:13981\/mobile\/media\//,
+      'the pushed text carries the WAP media link');
+    assert.equal(pushed[0].text.includes('[图片]'), false,
+      'the [图片] placeholder is replaced by the link');
+
+    const storedList = store.listMediaFor(20002, 10);
+    assert.equal(storedList.length, 1, 'the image reaches the local media table');
+    assert.equal(storedList[0].mediaType, 2, 'images are stored as the legacy picture type');
+    assert.equal(storedList[0].mimeType, 'image/png', 'mime type is sniffed from the bytes');
+    const stored = store.getMedia(storedList[0].id);
+    assert.ok(stored.content.equals(pngBytes), 'image bytes round-trip through sqlite');
+    assert.ok(pushed[0].text.includes(encodeURIComponent(storedList[0].id)),
+      'the link points at the stored media id');
+
+    // 群聊走旧客户端认识的群图片入口
+    assert.equal(backend._mediaLink('abc def', 'group'),
+      'http://192.0.2.10:13981/forward.jsp?bid=331&fileid=abc%20def',
+      'group images use the legacy group picture entry');
+    mock.imageFile = null;
+  }
+
+  // ---------- 回归：群消息里的图片块能被旧客户端解析出图片 ----------
+  // 本地复刻客户端 im.G() + im.f()：正文里出现 0x15 且 +2 是 '6'，客户端就把它当
+  // 一张图片，读出 uuid 与 fileid，渲染成可点击的 [图片] 气泡。
+  // 偏移含义见 legacy/protocol.js 里 buildGroupImageBlock 的注释，
+  // 逆向依据见 .workbuddy/memory/2026-09-20.md。
+  {
+    const mediaId = '11111111-2222-3333-4444-555555555555';
+    // 复刻 buildGroupMessagePayload 的头部，找到正文字段：
+    // subtype(1) 名字长(1) 名字(名长) 保留(2) 群号(4) 保留(1) 发送者(4) 保留(4)
+    // 时间(4) 保留(4) 正文字节长(2) 正文
+    const readBody = (payload) => {
+      let offset = 2 + payload[1];
+      offset += 2 + 4 + 1 + 4 + 4 + 4 + 4;
+      const length = payload.readUInt16BE(offset);
+      offset += 2;
+      return payload.subarray(offset, offset + length);
+    };
+    // 复刻 im.f() 的块解析：只读 +3 +7 +9 +10 +18 +98 这几个点
+    const readBlock = (body) => {
+      // im.f() 找的是 UTF-16BE 的 \u0015（字节 0x00 0x15），im.G() 的粗筛是多看一个 +2
+      let marker = -1;
+      for (let index = 0; index + 3 < body.length; index += 1) {
+        if (body[index] === 0x00 && body[index + 1] === 0x15
+            && body[index + 3] === 0x36) { marker = index; break; }
+      }
+      if (marker < 0) return null;
+      const chars = (body[marker + 7] - 48) * 10 + (body[marker + 9] - 48);
+      const uuidLength = body.readUInt16BE(marker + 10) - 65;
+      const readChars = (start, count) => {
+        const values = [];
+        for (let index = 0; index < count; index += 1) {
+          values.push(body.readUInt16BE(start + index * 2));
+        }
+        return String.fromCharCode(...values);
+      };
+      return {
+        marker,
+        chars,
+        uuidLength,
+        uuid: readChars(marker + 98, uuidLength),
+        fileIdHex: readChars(marker + 18, 8),
+        // 客户端 Long.parseLong(hex,16) → 十进制，再拼进 ?fileid=
+        fileId: BigInt('0x' + readChars(marker + 18, 8)).toString(),
+      };
+    };
+
+    const body = readBody(protocol.buildGroupMessagePayload({
+      groupId: 689546479,
+      senderUin: 2679375266,
+      displayName: 'Alice',
+      text: '[图片]',
+      images: [mediaId],
+      imageText: '[图片]',
+    }));
+    const block = readBlock(body);
+    assert.ok(block, 'the group body carries an image marker (0x15 + "6")');
+    assert.equal(block.uuid, mediaId, 'the block carries the media id as the picture uuid');
+    assert.equal(block.uuidLength, mediaId.length, 'the uuid character count is encoded at +10');
+    assert.equal(block.chars, 49 + mediaId.length, 'the block length covers header + uuid');
+    assert.equal(body.length, 10 + block.chars * 2,
+      'the body is the 10-byte header plus one whole block (the placeholder is consumed)');
+    assert.equal(block.marker, 10, 'the block starts right after the 10-byte message header');
+    assert.match(block.fileIdHex, /^[0-9a-f]{8}$/, 'the file id is 8 lowercase hex digits');
+    assert.ok(BigInt('0x' + block.fileIdHex) <= 0xFFFFFFFFn,
+      'the file id stays inside 32 bits so Long.parseLong cannot overflow');
+    // 曾经把散列写在了 8 个字符之外，客户端读到的恒为 00000000 —— 这条防回归
+    assert.notEqual(block.fileIdHex, '00000000', 'the file id is a real hash, not padding');
+    const otherId = 'zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz';
+    const otherBlock = protocol.buildGroupImageBlock(otherId);
+    const otherHex = [];
+    for (let index = 0; index < 8; index += 1) otherHex.push(otherBlock.readUInt16BE(18 + index * 2));
+    assert.notEqual(String.fromCharCode(...otherHex), block.fileIdHex,
+      'the file id is derived from the uuid');
+    assert.equal(otherBlock.readUInt16BE(10) - 65, otherId.length,
+      'the uuid character count is relative to the block, not the group body');
+
+    // 混合文本：占位符被原地替换，前后文字都保留
+    const mixedBody = readBody(protocol.buildGroupMessagePayload({
+      groupId: 1, senderUin: 2, displayName: 'A',
+      text: '看图[图片]好', images: [mediaId], imageText: '看图[图片]好',
+    }));
+    assert.ok(mixedBody.subarray(0, 10).equals(Buffer.alloc(10)),
+      'the 10-byte message header stays zeroed');
+    assert.ok(mixedBody.subarray(10, 14).equals(protocol.encodeLegacyText('看图')),
+      'text before the placeholder survives');
+    assert.ok(mixedBody.subarray(mixedBody.length - 2).equals(protocol.encodeLegacyText('好')),
+      'text after the placeholder survives');
+    assert.ok(mixedBody.subarray(14, mixedBody.length - 2).equals(
+      protocol.buildGroupImageBlock(mediaId)), 'the placeholder is replaced by the image block');
+
+    // 没有图片时纯文本路径完全不变
+    const plainBody = readBody(protocol.buildGroupMessagePayload({
+      groupId: 1, senderUin: 2, displayName: 'A', text: 'hi',
+    }));
+    assert.equal(plainBody.length, 14, 'plain group text keeps the 10-byte header + 2 chars');
+    assert.equal(readBlock(plainBody), null, 'plain text carries no image marker');
+
+    // uuid 过长（块长要两位十进制）必须被拒，而不是生成坏块
+    assert.throws(() => protocol.buildGroupImageBlock('x'.repeat(51)),
+      /too long/, 'an over-long uuid is rejected instead of emitting a corrupt block');
+  }
+
+  // ---------- 回归：取不到图片时不丢消息、不抛错 ----------
+  {
+    const pushed = [];
+    const originalDeliverText = qqServer.deliverText;
+    qqServer.deliverText = (from, to, text) => {
+      pushed.push(text);
+      return true;
+    };
+    try {
+      mock.emit({
+        post_type: 'message',
+        message_type: 'private',
+        self_id: 10001,
+        user_id: 20002,
+        message_id: 70002,
+        time: 1700000001,
+        sender: { nickname: 'Alice' },
+        message: [{ type: 'image', data: { file: 'base64://', url: '' } }],
+      });
+      for (let wait = 0; wait < 200 && pushed.length === 0; wait += 1) await sleep(10);
+    } finally {
+      qqServer.deliverText = originalDeliverText;
+    }
+    assert.equal(pushed.length, 1, 'text still goes through when the image cannot be fetched');
+    assert.equal(pushed[0], '[图片]', 'the placeholder is preserved when the image fails');
+  }
 
   const port = await new Promise((resolve, reject) => {
     qqServer.on('error', reject);
@@ -686,6 +1008,125 @@ async function main() {
     assert.equal(store.get(20002).nickname, 'Alice Updated',
       'group card does not overwrite the global QQ nickname');
 
+    // ---------- NapCat 群图片事件 -> 0x0094 携带图片块（方案 B） ----------
+    // 群图片不再只推链接：正文里带上客户端 im.f() 认识的 0x15 + '6' 富媒体块，
+    // 老客户端会渲染成可点击的 [图片] 气泡。
+    {
+      const png = Buffer.from(
+        '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex');
+      const groupImageFile = path.join(tmpDir, 'napcat-group-image.png');
+      fs.writeFileSync(groupImageFile, png);
+      mock.imageFile = groupImageFile;
+      try {
+        mock.emit({
+          post_type: 'message',
+          message_type: 'group',
+          group_id: 30003,
+          user_id: 20002,
+          self_id: 10001,
+          sender: { nickname: 'Alice Updated', card: 'Group Alice Card' },
+          message: [{ type: 'image', data: { file: groupImageFile } }],
+          time: 12348,
+        });
+        const imagePush = await client.reader.nextOf(protocol.COMMAND_GROUP_MESSAGE, 3000);
+        const imagePlain = protocol.decryptPayload(imagePush.payload, client.key);
+        // 正文字段：subtype(1) 名字长(1) 名字 保留(2) 群号(4) 保留(1) 发送者(4)
+        // 保留(4) 时间(4) 保留(4) 正文字节长(2) 正文
+        let offset = 2 + imagePlain[1] + 2 + 4 + 1 + 4 + 4 + 4 + 4;
+        const bodyLength = imagePlain.readUInt16BE(offset); offset += 2;
+        const body = imagePlain.subarray(offset, offset + bodyLength);
+        let marker = -1;
+        for (let index = 0; index + 3 < body.length; index += 1) {
+          if (body[index] === 0x00 && body[index + 1] === 0x15
+              && body[index + 3] === 0x36) { marker = index; break; }
+        }
+        assert.equal(marker, 10, 'the group image push carries a 0x15 + "6" block');
+        assert.equal((body[marker + 7] - 48) * 10 + (body[marker + 9] - 48),
+          49 + body.readUInt16BE(marker + 10) - 65, 'the block length matches its uuid');
+        const uuidLength = body.readUInt16BE(marker + 10) - 65;
+        let uuid = '';
+        for (let index = 0; index < uuidLength; index += 1) {
+          uuid += String.fromCharCode(body.readUInt16BE(marker + 98 + index * 2));
+        }
+        const stored = store.getMedia(uuid);
+        assert.ok(stored, 'the block uuid resolves to the media stored for this group image');
+        assert.equal(stored.mediaType, 2, 'the group image is stored as the legacy picture type');
+        assert.ok(stored.content.equals(png), 'the stored group image keeps the NapCat bytes');
+        assert.ok(backend._mediaLink(uuid, 'group').includes('bid=331'),
+          'the group picture entry stays the legacy forward.jsp one');
+      } finally {
+        mock.imageFile = null;
+      }
+    }
+
+    // ---------- 上行发图：老客户端上传的图片真正转发到真实 QQ ----------
+    // 旧客户端只在群聊里给「发送图片」入口（hb.java:680 动作码 237），
+    // 群图片的收件人是**群号而不是账号**，以前会被 saveMedia 的账号校验挡掉，
+    // 就算过了也止步于 server.js 的 onComplete（只落库不转发）。这里锁死修复后的行为。
+    {
+      const png = Buffer.from(
+        '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex');
+      const groupMedia = store.saveMedia({
+        from: 20002, to: 30003, filename: 'up.jpg', mimeType: 'image/jpeg',
+        mediaType: 2, size: png.length, sha256: 'a'.repeat(64), content: png,
+      });
+      assert.ok(groupMedia && groupMedia.id, 'a group number is accepted as the recipient');
+      assert.ok(groupMedia.content.equals(png), 'the uploaded bytes are stored untouched');
+      assert.throws(() => store.saveMedia({
+        from: 20002, to: 99999999, filename: 'bad.jpg', mimeType: 'image/jpeg',
+        mediaType: 2, size: png.length, content: png,
+      }), /media recipient/, 'an unknown recipient is still rejected');
+      assert.throws(() => store.saveMedia({
+        from: 99999999, to: 20002, filename: 'bad.jpg', mimeType: 'image/jpeg',
+        mediaType: 2, size: png.length, content: png,
+      }), /media sender/, 'an unknown sender is still rejected');
+
+      // 收件人解析：群号 -> 群，好友 uin -> 私聊
+      assert.deepEqual(resolveMediaTarget(store, 30003),
+        { chatType: 'group', peerId: 30003 }, 'a group number routes to the group');
+      assert.deepEqual(resolveMediaTarget(store, 20002),
+        { chatType: 'private', peerId: 20002 }, 'a friend uin routes to the private chat');
+      assert.deepEqual(resolveMediaTarget(store, 99999999),
+        { chatType: 'private', peerId: 99999999 }, 'an unknown id falls back to private');
+
+      // OneBot 转发：send_group_msg + base64 图片段
+      const sentBefore = mock.sent.length;
+      const forwarded = await backend.sendImage({
+        chatType: 'group', peerId: 30003, fromUin: 20002, content: png, rateKey: 'global',
+      });
+      assert.equal(forwarded.ok, true, 'the mock NapCat accepts the group image');
+      assert.equal(forwarded.action, 'send_group_msg', 'group images use send_group_msg');
+      assert.equal(mock.sent.length, sentBefore + 1, 'exactly one image push is made');
+      const imageCall = mock.sent[mock.sent.length - 1];
+      assert.equal(imageCall.params.group_id, 30003, 'the real group number is group_id');
+      assert.equal(imageCall.params.message.length, 1, 'a bare image is a single segment');
+      assert.equal(imageCall.params.message[0].type, 'image', 'the payload is an image segment');
+      assert.equal(imageCall.params.message[0].data.file,
+        'base64://' + png.toString('base64'), 'the bytes travel as a base64 URI');
+
+      // 带说明文字时，文本段在前
+      await backend.sendImage({
+        chatType: 'group', peerId: 30003, content: png, text: '看这个',
+      });
+      const captioned = mock.sent[mock.sent.length - 1];
+      assert.equal(captioned.params.message[0].type, 'text', 'the caption precedes the image');
+      assert.equal(captioned.params.message[1].type, 'image', 'the image follows the caption');
+
+      // NapCat 报错时返回失败，不抛
+      mock.failActions.add('send_group_msg');
+      const failed = await backend.sendImage({ chatType: 'group', peerId: 30003, content: png });
+      mock.failActions.delete('send_group_msg');
+      assert.equal(failed.ok, false, 'a NapCat failure is reported instead of thrown');
+      assert.equal(failed.code, 'onebot', 'the failure carries the onebot code');
+
+      // 参数不合法同样不抛
+      const emptyContent = await backend.sendImage({ chatType: 'group', peerId: 30003, content: null });
+      assert.equal(emptyContent.ok, false, 'missing bytes are rejected without throwing');
+      const noPeer = await backend.sendImage({ chatType: 'group', content: png });
+      assert.equal(noPeer.ok, false, 'a missing peer is rejected without throwing');
+      assert.equal(mock.sent.length, sentBefore + 2, 'rejected calls never reach NapCat');
+    }
+
     // ---------- 离线消息进 outbox，重登后补发 ----------
     client.socket.destroy();
     await sleep(100);
@@ -701,6 +1142,8 @@ async function main() {
     assert.equal(store.data.outbox.length, 1);
     assert.equal(store.data.outbox[0].text, 'offline msg');
 
+    const privateReplayBeforeLogin = clientReadyCalls
+      .filter((call) => call.uin === 10001).length;
     const client2 = await openClient(port, 10001, 'nyanya-token');
     assert.equal(client2.loginResponse.status, 0);
     const outboxPush = await client2.reader.nextOf(protocol.COMMAND_INCOMING_TEXT, 3000);
@@ -708,6 +1151,10 @@ async function main() {
     assert.deepEqual(parseIncomingText(outboxPlain), { subtype: 9, senderUin: 20002, text: 'offline msg' });
     await sleep(200);
     assert.equal(store.data.outbox.length, 0);
+    // 登录就绪即触发私聊历史回放（延迟 20ms 生效），这次登录恰好一次。
+    assert.equal(clientReadyCalls.filter((call) => call.uin === 10001).length,
+      privateReplayBeforeLogin + 1,
+      'a fresh login replays the private history exactly once');
 
     // ---------- 大好友列表分页（一页 100，避免卡死 QQ2013） ----------
     mock.friends = Array.from({ length: 250 }, (_, index) => ({
@@ -815,6 +1262,220 @@ async function main() {
     assert.equal(store.getGroup(77777777), null, 'muted group must not be stubbed');
     config.mutedGroupIds = [];
 
+    // ---------- 群聊历史回放：老客户端群窗口只存内存，靠补推 ----------
+    // 客户端上报群接收状态前 0x0094 一律被拦，所以回放只能挂在"首次就绪"之后。
+    assert.deepEqual(
+      parseHistoricalMedia('看这个【图片】http://10.0.0.2:13981/forward.jsp?bid=331&fileid=abc-123'),
+      { images: ['abc-123'], imageText: '看这个[图片]' },
+      'a historical image link is turned back into an image block');
+    assert.deepEqual(parseHistoricalMedia('纯文本'), { images: [], imageText: '纯文本' },
+      'plain history text is left untouched');
+    assert.deepEqual(
+      parseHistoricalMedia('【图片】http://h/x?fileid=u1 后面【图片】http://h/x?fileid=u2'),
+      { images: ['u1', 'u2'], imageText: '[图片] 后面[图片]' },
+      'multiple historical images keep their order');
+    assert.deepEqual(
+      parseHistoricalMedia('【图片】http://h/forward.jsp?bid=331'),
+      { images: [], imageText: '【图片】http://h/forward.jsp?bid=331' },
+      'a link without a fileid is not treated as an image');
+
+    // 回放本身：按原发送者/原时间逐条补推，图片还原成图片块参数。
+    store.saveGroupMessage(30003, 20002, '历史文本一');
+    store.saveGroupMessage(30003, 20002,
+      '【图片】http://10.0.0.2:13981/forward.jsp?bid=331&fileid=hist-1');
+    const replayed = [];
+    const historyReport = replayGroupHistory({
+      store,
+      uin: 10001,
+      limit: 5,
+      reason: 'self_test',
+      groupReceiveFilter: new Set([30003]),
+      deliverGroup: (groupId, fromUin, text, context) => {
+        replayed.push({ groupId, fromUin, text, context });
+        return { delivered: 1 };
+      },
+    });
+    assert.ok(historyReport.messages >= 2, 'recorded messages are replayed');
+    assert.equal(historyReport.delivered, historyReport.messages,
+      'delivery counts are summed from deliverGroup');
+    // 群 30003 里还有本用例早前推送留下的记录，这里只钉住新加的两条排在最后。
+    assert.deepEqual(replayed.slice(-2).map((item) => item.text),
+      ['历史文本一', '【图片】http://10.0.0.2:13981/forward.jsp?bid=331&fileid=hist-1'],
+      'the newest recorded messages are replayed last, in order');
+    assert.deepEqual(replayed.slice(-2).map((item) => item.fromUin), [20002, 20002],
+      'replayed messages keep the original sender');
+    const replayedImage = replayed.slice(-2).find((item) => item.context.images.length > 0);
+    assert.deepEqual(replayedImage.context.images, ['hist-1'],
+      'a replayed image keeps its media id');
+    assert.equal(replayedImage.context.imageText, '[图片]',
+      'a replayed image uses the placeholder body so the client rebuilds the block');
+    assert.ok(replayedImage.context.timestamp > 0,
+      'replayed messages carry their original timestamp');
+    // 不在接收清单里的群不回放（推了也会被拦，省一次遍历）。
+    const skippedHistory = replayGroupHistory({
+      store,
+      uin: 10001,
+      limit: 5,
+      groupReceiveFilter: new Set([999999]),
+      deliverGroup: () => {
+        throw new Error('groups outside the receive filter must not be replayed');
+      },
+    });
+    assert.equal(skippedHistory.messages, 0, 'groups outside the receive filter are not replayed');
+    assert.ok(skippedHistory.skippedGroups >= 1, 'skipped groups are reported');
+
+    // ---------- 私聊历史回放：只补推「对方发的」 ----------
+    // 用独立 uin，免得跟别的用例写进 store 的私聊记录互相干扰。
+    store.saveMessage(60002, 60001, '私聊历史一');
+    store.saveMessage(60001, 60002, '我自己发的不回放');
+    store.saveMessage(60002, 60001, '私聊历史二');
+    assert.deepEqual(store.privateConversations(60001), [60002],
+      'private conversations enumerate the peer, not the account itself');
+    assert.deepEqual(
+      store.incomingPrivateMessages(60001, 60002, 10).map((message) => message.text),
+      ['私聊历史一', '私聊历史二'],
+      'only messages sent by the peer are exposed for replay');
+    assert.deepEqual(
+      store.incomingPrivateMessages(60001, 60002, 1).map((message) => message.text),
+      ['私聊历史二'],
+      'the private history limit keeps the newest messages');
+    const privateReplayed = [];
+    const privateReport = replayPrivateHistory({
+      store,
+      uin: 60001,
+      limit: 10,
+      reason: 'self_test',
+      deliverText: (fromUin, toUin, text, subtype, why) => {
+        privateReplayed.push({ fromUin, toUin, text, subtype, why });
+        return true;
+      },
+    });
+    assert.equal(privateReport.peers, 1, 'one private conversation is replayed');
+    assert.equal(privateReport.messages, 2, 'both incoming private messages are replayed');
+    assert.equal(privateReport.delivered, 2, 'every private delivery is counted');
+    assert.deepEqual(privateReplayed.map((item) => item.text),
+      ['私聊历史一', '私聊历史二'],
+      'private history replays peer messages in order');
+    assert.ok(privateReplayed.every((item) => item.fromUin === 60002 && item.toUin === 60001),
+      'a replayed private message keeps the peer as sender and the account as recipient');
+    assert.ok(privateReplayed.every((item) => item.subtype === 9),
+      'replayed private messages use the default text subtype');
+    assert.ok(privateReplayed.every((item) => item.why === 'self_test'),
+      'replayed private messages carry the replay reason');
+    // 对方没发过话的账号：没有会话可回放，一次推送都不该发生。
+    const emptyPrivateReport = replayPrivateHistory({
+      store,
+      uin: 70007,
+      limit: 10,
+      deliverText: () => {
+        throw new Error('an account without private history must not push anything');
+      },
+    });
+    assert.equal(emptyPrivateReport.messages, 0,
+      'an account without private history replays nothing');
+    // 投递失败（设备离线）仍算尝试过，但不计入 delivered。
+    const offlinePrivateReport = replayPrivateHistory({
+      store,
+      uin: 60001,
+      limit: 10,
+      deliverText: () => false,
+    });
+    assert.equal(offlinePrivateReport.messages, 2,
+      'offline private deliveries are still attempted');
+    assert.equal(offlinePrivateReport.delivered, 0,
+      'failed private deliveries are not counted as delivered');
+
+    // ---------- 回放水位：掉线重连不再把看过的历史重推一遍 ----------
+    // 背景：客户端掉线会自己重连，重连等于重新登录，回放就会重推——
+    // 2026-09-20 现场就是加好友那句系统文案被反复当成新消息推。
+    // 水位本身（core/replay-cursor.js）：带 TTL，过期即作废。
+    let cursorClock = 1000;
+    const ttlCursors = createReplayCursors({ ttlMs: 50, now: () => cursorClock });
+    ttlCursors.set('probe', 7);
+    assert.equal(ttlCursors.get('probe').afterId, 7, 'a fresh cursor is returned');
+    assert.equal(ttlCursors.size(), 1, 'setting a cursor stores exactly one entry');
+    cursorClock += 49;
+    assert.equal(ttlCursors.get('probe').afterId, 7, 'a cursor inside its ttl survives');
+    cursorClock += 1;
+    assert.equal(ttlCursors.get('probe'), null, 'a cursor past its ttl is dropped');
+    assert.equal(ttlCursors.size(), 0, 'expired cursors are dropped from the store');
+    // ttl<=0 表示永不过期：水位只随网关进程结束而清空。
+    const foreverCursors = createReplayCursors({ ttlMs: 0, now: () => cursorClock });
+    foreverCursors.set('probe', 3);
+    cursorClock += 365 * 24 * 3600 * 1000;
+    assert.equal(foreverCursors.get('probe').afterId, 3, 'ttl<=0 keeps cursors forever');
+
+    // 群回放接上水位：第一轮全量、第二轮空转、第三轮只推增量。
+    const groupCursors = createReplayCursors({ ttlMs: 0 });
+    const runGroupReplay = () => {
+      const seen = [];
+      const report = replayGroupHistory({
+        store,
+        uin: 10001,
+        limit: 50,
+        reason: 'self_test',
+        groupReceiveFilter: new Set([30003]),
+        cursors: groupCursors,
+        deliverGroup: (groupId, fromUin, text) => {
+          seen.push(text);
+          return { delivered: 1 };
+        },
+      });
+      return { seen, report };
+    };
+    const firstGroupPass = runGroupReplay();
+    assert.ok(firstGroupPass.report.fresh >= 1 && firstGroupPass.report.resumed === 0,
+      'the first replay starts without a cursor');
+    assert.ok(firstGroupPass.seen.length > 0, 'the first replay delivers history');
+    const secondGroupPass = runGroupReplay();
+    assert.equal(secondGroupPass.report.resumed, 1,
+      'the second replay resumes from the stored cursor');
+    assert.equal(secondGroupPass.report.messages, 0,
+      'a reconnect without new group messages replays nothing');
+    assert.deepEqual(secondGroupPass.seen, [],
+      'no group message is pushed twice after the cursor is stored');
+    store.saveGroupMessage(30003, 20002, '水位之后的新群消息');
+    const thirdGroupPass = runGroupReplay();
+    assert.deepEqual(thirdGroupPass.seen, ['水位之后的新群消息'],
+      'only group messages newer than the cursor are replayed');
+    assert.equal(thirdGroupPass.report.delivered, 1, 'the incremental group push is counted');
+
+    // 私聊回放接上水位：同一套语义。
+    const privateCursors = createReplayCursors({ ttlMs: 0 });
+    const runPrivateReplay = () => {
+      const seen = [];
+      const report = replayPrivateHistory({
+        store,
+        uin: 60001,
+        limit: 50,
+        reason: 'self_test',
+        cursors: privateCursors,
+        deliverText: (fromUin, toUin, text) => {
+          seen.push(text);
+          return true;
+        },
+      });
+      return { seen, report };
+    };
+    const firstPrivatePass = runPrivateReplay();
+    assert.deepEqual(firstPrivatePass.seen, ['私聊历史一', '私聊历史二'],
+      'the first private replay delivers the recorded history');
+    assert.equal(firstPrivatePass.report.fresh, 1, 'the first private replay has no cursor');
+    const secondPrivatePass = runPrivateReplay();
+    assert.equal(secondPrivatePass.report.messages, 0,
+      'a reconnect without new private messages replays nothing');
+    assert.equal(secondPrivatePass.report.resumed, 1,
+      'the second private replay resumes from the stored cursor');
+    store.saveMessage(60002, 60001, '水位之后的新私聊');
+    const thirdPrivatePass = runPrivateReplay();
+    assert.deepEqual(thirdPrivatePass.seen, ['水位之后的新私聊'],
+      'only private messages newer than the cursor are replayed');
+    // 加好友那句系统文案就是普通私聊消息，水位之后不会再来第二次。
+    assert.deepEqual(
+      store.incomingPrivateMessages(60001, 60002, 10).map((message) => message.text),
+      ['私聊历史一', '私聊历史二', '水位之后的新私聊'],
+      'store queries without a cursor still return the full history');
+
     // ---------- 0x0070 J2ME 群接收状态：1=接收，0=屏蔽 ----------
     mock.groups.push({ group_id: 44444444, group_name: '群2' });
     await backend.refreshMirror();
@@ -874,6 +1535,16 @@ async function main() {
     receiveFilter = qqServer.qqSessions.get(10001).groupReceiveFilter;
     assert.ok(receiveFilter && receiveFilter.has(30003), 'filter records group 30003');
     assert.ok(!receiveFilter.has(44444444), 'filter excludes group 44444444');
+
+    // 已经就绪过的会话再上报订阅清单，不会把历史回放第二遍。
+    await sleep(80);
+    assert.equal(receiveReadyCalls.filter((call) => call.uin === 10001).length, 1,
+      'a later 0x008C does not replay the group history a second time');
+    // 私聊回放挂在登录就绪上（不依赖群订阅状态），且每次触发都来自登录。
+    assert.ok(clientReadyCalls.every((call) => call.reason === 'login'),
+      'the private history replay is triggered by login');
+    assert.ok(clientReadyCalls.some((call) => call.uin === 10001),
+      'client ready triggers the private history replay for the account');
 
     mock.emit({
       post_type: 'message', message_type: 'group',
@@ -1122,6 +1793,137 @@ async function main() {
       dynamicGroupPush.payload, symbianClient.key)).groupId, 88888888,
     'later messages from the dynamically mapped group are delivered');
     symbianClient.socket.destroy();
+
+    // ---------- WAP 看图页：bid=331 用 pic（图片块的 uuid）取图 ----------
+    // 群图片块里客户端拼的是 &pic=<uuid>&fileid=<十进制>，两个参数都要能取到图。
+    {
+      const wap = createMobileGroupServer({ store, logger: () => {} });
+      const wapPort = await new Promise((resolve, reject) => {
+        wap.on('error', reject);
+        wap.listen(0, '127.0.0.1', () => resolve(wap.address().port));
+      });
+      try {
+        const png = Buffer.from(
+          '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex');
+        const media = store.saveMedia({
+          from: 20002, to: 10001, filename: 'view.png', mimeType: 'image/png',
+          mediaType: 2, size: png.length,
+          sha256: require('node:crypto').createHash('sha256').update(png).digest('hex'),
+          legacyHash: Buffer.alloc(0), content: png,
+        });
+        // 这份 QQ2011 的内置浏览器（iw.class）只认 text/vnd.wap.wml：
+        // 收到 text/html 会弹自己的「错误代码 005 页面类型暂不支持」。所以手机必须拿 WML。
+        const legacyAccept = 'text/vnd.wap.wml,image/*,audio/*,'
+          + 'text/vnd.sun.j2me.app-descriptor,application/*';
+        const request = async (query, accept) => {
+          const response = await fetch(
+            `http://127.0.0.1:${wapPort}/forward.jsp?bid=331&${query}`,
+            accept ? { headers: { accept } } : undefined);
+          return {
+            status: response.status,
+            type: response.headers.get('content-type'),
+            bytes: Buffer.from(await response.arrayBuffer()),
+          };
+        };
+        const byPic = await request(`pic=${encodeURIComponent(media.id)}`, legacyAccept);
+        assert.equal(byPic.status, 200, 'bid=331 resolves the picture from pic (the block uuid)');
+        assert.match(byPic.type, /^text\/vnd\.wap\.wml/,
+          'the legacy client must get WML — it answers text/html with error 005');
+        const wmlBody = byPic.bytes.toString('utf8');
+        assert.ok(wmlBody.includes('<wml>') && wmlBody.includes('<img '),
+          'the deck embeds the picture so the built-in browser fetches the raw image');
+        assert.ok(wmlBody.includes(`/mobile/media/${encodeURIComponent(media.id)}/raw`),
+          'the img src points at the raw media endpoint');
+        // 老客户端会把 <img alt="…"> 的 alt 当正文渲染，图片上方会多出一行“图片”。
+        // WML 1.1 又要求 alt 属性存在，所以留空串；这里锁死这个约定防回退。
+        assert.ok(wmlBody.includes('alt=""') && !wmlBody.includes('alt="图片"'),
+          'the WML img keeps an empty alt so the legacy browser shows no stray caption');
+        const byFileId = await request(`fileid=${encodeURIComponent(media.id)}`, legacyAccept);
+        assert.equal(byFileId.status, 200, 'older fileid-only links still resolve');
+        const byPage = await request(`pic=${encodeURIComponent(media.id)}&page=1`);
+        assert.equal(byPage.status, 200, '&page=1 still serves the HTML wrapper for desktop');
+        assert.ok(byPage.bytes.toString('utf8').includes(encodeURIComponent(media.id)),
+          'the wrapper page points back at the media id with an absolute URL');
+        const desktop = await request(`pic=${encodeURIComponent(media.id)}`);
+        assert.match(desktop.type, /^text\/html/,
+          'a normal browser (no WML in Accept) still gets the HTML wrapper');
+        const missing = await request('pic=does-not-exist', legacyAccept);
+        assert.equal(missing.status, 404, 'an unknown pic returns 404 instead of crashing');
+        // /mobile/media/<id> 也要跟着协商，否则私聊消息里的图片链接照样是 005。
+        const mediaPageResponse = await fetch(
+          `http://127.0.0.1:${wapPort}/mobile/media/${encodeURIComponent(media.id)}`,
+          { headers: { accept: legacyAccept } });
+        assert.match(mediaPageResponse.headers.get('content-type'), /^text\/vnd\.wap\.wml/,
+          'the plain media page also speaks WML to the legacy browser');
+        assert.ok((await mediaPageResponse.text()).includes('<img '),
+          'the media card embeds the picture too');
+        const rawResponse = await fetch(
+          `http://127.0.0.1:${wapPort}/mobile/media/${encodeURIComponent(media.id)}/raw`);
+        assert.ok(Buffer.from(await rawResponse.arrayBuffer()).equals(png),
+          'the raw endpoint still round-trips the original bytes');
+
+        // ---------- WAP 群聊天记录页：手机菜单「群聊天记录」走 bid=202 ----------
+        // 客户端 ee.java:1106（菜单 action 10）拼的是
+        // forward.jsp?bid=202&groupID=<群id>&fqq=<自己QQ号>，标题写死「群聊天记录」。
+        // 这一页以前回的是 text/html，手机的内置浏览器直接判 005 —— 用户看到的就是
+        // 「没有聊天记录」。所以：内容必须是记录，类型必须是 WML。
+        const wapGet = async (path, accept) => {
+          const response = await fetch(`http://127.0.0.1:${wapPort}${path}`,
+            accept ? { headers: { accept } } : undefined);
+          return {
+            status: response.status,
+            type: response.headers.get('content-type'),
+            body: await response.text(),
+          };
+        };
+        const historyGroup = store.getGroup(30003);
+        assert.ok(historyGroup, 'group 30003 is still available for the history page');
+        const historyRows = store.recentGroupMessages(historyGroup.id, 50);
+        assert.ok(historyRows.length > 0,
+          'the pushed group message was stored, so the history page has something to show');
+        const historyPath = `/forward.jsp?bid=202&groupID=${historyGroup.id}&fqq=10001`;
+        const wmlHistory = await wapGet(historyPath, legacyAccept);
+        assert.equal(wmlHistory.status, 200, 'bid=202 (phone menu 群聊天记录) answers');
+        assert.match(wmlHistory.type, /^text\/vnd\.wap\.wml/,
+          'the group history page must speak WML — the phone answers text/html with error 005');
+        assert.ok(wmlHistory.body.includes('<wml>') && !wmlHistory.body.includes('<ul>'),
+          'the WML history deck uses WML-only markup (no ul/li/b)');
+        assert.ok(wmlHistory.body.includes(historyRows[historyRows.length - 1].text),
+          'the WML history deck lists the most recent group message');
+        // WML 的 `$` 是变量引用，正文里的 `$` 必须转义，否则消息会被吃掉一段。
+        store.saveGroupMessage(historyGroup.id, 20002, 'total is $5');
+        const dollarHistory = await wapGet(historyPath, legacyAccept);
+        assert.ok(dollarHistory.body.includes('$$5'),
+          'a literal $ in a message is escaped as $$ for WML variable syntax');
+        // 图片消息里嵌的是网关自己拼的链接，WML 里要变成可点的 <a>，不能糊一串 URL。
+        store.saveGroupMessage(historyGroup.id, 20002,
+          '看图 【图片】http://192.168.1.3:13981/forward.jsp?bid=331&fileid=abc');
+        const imageHistory = await wapGet(historyPath, legacyAccept);
+        assert.ok(imageHistory.body.includes('<a href="http://192.168.1.3:13981/forward.jsp?bid=331&amp;fileid=abc">【图片】</a>'),
+          'a media link inside a message becomes a tappable WML anchor');
+        const htmlHistory = await wapGet(historyPath);
+        assert.match(htmlHistory.type, /^text\/html/,
+          'a desktop browser still gets the HTML history page');
+        assert.ok(htmlHistory.body.includes('<ul>'),
+          'the HTML history page keeps its list markup');
+        const wmlRoster = await wapGet(
+          `/forward.jsp?bid=203&groupID=${historyGroup.id}`, legacyAccept);
+        assert.match(wmlRoster.type, /^text\/vnd\.wap\.wml/,
+          'bid=203 (group roster) also speaks WML now');
+        assert.ok(wmlRoster.body.includes(historyGroup.title),
+          'the WML roster carries the group title');
+        // 挑一个确定不存在的群号：getGroup 会同时匹配 id 和 publicId，别撞上测试里的群。
+        let freeGroupId = 2147483647;
+        while (store.getGroup(freeGroupId)) freeGroupId -= 1;
+        const missingGroup = await wapGet(
+          `/forward.jsp?bid=202&groupID=${freeGroupId}`, legacyAccept);
+        assert.equal(missingGroup.status, 404, 'an unknown group still returns 404');
+        assert.match(missingGroup.type, /^text\/vnd\.wap\.wml/,
+          'the missing-group 404 is WML too, not an HTML error page the phone cannot read');
+      } finally {
+        wap.close();
+      }
+    }
 
     process.stdout.write('nyanya gateway self-test passed.\n');
   } finally {

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="6298f9f5-8fad-4e43-a6cf-678c17d3d789" name="Changes" comment="云部署&#10;frp">
+      <change afterPath="$PROJECT_DIR$/docs/JAR注入器兼容性说明.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/使用与配置手册.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/版本矩阵.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/零基础教程.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/架构说明.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DESIGN.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/clients/j2me/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/clients/j2me/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/BEGINNER-GUIDE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/JAR-INJECTOR-COMPATIBILITY-HANDOFF.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/USAGE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/VERSION-MATRIX.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gateway/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/gateway/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/gateway-core/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/packages/gateway-core/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/gateway-core/onebot-events.js" beforeDir="false" afterPath="$PROJECT_DIR$/packages/gateway-core/onebot-events.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/gateway-core/self-test.js" beforeDir="false" afterPath="$PROJECT_DIR$/packages/gateway-core/self-test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/onebot-adapter/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/packages/onebot-adapter/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/package-release.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/tools/package-release.ps1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/release-assets/CLASS-README.md" beforeDir="false" afterPath="$PROJECT_DIR$/tools/release-assets/CLASS-README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/release-assets/GENERIC-README.md" beforeDir="false" afterPath="$PROJECT_DIR$/tools/release-assets/GENERIC-README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/release-assets/class-package.json" beforeDir="false" afterPath="$PROJECT_DIR$/tools/release-assets/class-package.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;uchihaph&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/uchihaph/nyanya_gateway&quot;,
+    &quot;accountId&quot;: &quot;a8fcc9a4-444c-4119-99e5-e992811fe7e5&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="customMavenHome" value="D:\developTools\apache-maven-3.9.11" />
+        <option name="localRepository" value="D:\developTools\repository" />
+        <option name="mavenHomeTypeForPersistence" value="CUSTOM" />
+        <option name="userSettingsFile" value="D:\developTools\apache-maven-3.9.11\conf\settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.000015156587313" />
+      <entry key="MS500" value="1.1290026272020148" />
+      <entry key="S2" value="2.159418646208841" />
+      <entry key="S5" value="3.538210707197452" />
+      <entry key="S10" value="5.432085213060336" />
+      <entry key="S30" value="12.92766075456268" />
+      <entry key="S60" value="19.531855164418317" />
+      <entry key="M2" value="25.01842566605567" />
+      <entry key="M5" value="29.43423301630344" />
+      <entry key="M10" value="31.147342049379347" />
+      <entry key="M15" value="31.748765040601366" />
+      <entry key="M30" value="32.36615500047982" />
+      <entry key="H1" value="32.68098946808635" />
+      <entry key="H2" value="32.83996877412824" />
+      <entry key="H4" value="32.91985239943413" />
+      <entry key="D1" value="32.986623692546495" />
+      <entry key="W1" value="32.99808864840489" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="1.0456437434614365E-78" />
+      <entry key="S2" value="3.1977605159801286E-20" />
+      <entry key="S5" value="1.5919828112640428E-8" />
+      <entry key="S10" value="1.2617380121340735E-4" />
+      <entry key="S30" value="0.05015601948050984" />
+      <entry key="S60" value="0.2239553961852891" />
+      <entry key="M2" value="0.4732392589222592" />
+      <entry key="M5" value="0.7413653878371786" />
+      <entry key="M10" value="0.8610257765230833" />
+      <entry key="M15" value="0.9050601337034282" />
+      <entry key="M30" value="0.9513464845698594" />
+      <entry key="H1" value="0.9753699219116096" />
+      <entry key="H2" value="0.9876081823838893" />
+      <entry key="H4" value="0.9937847766915568" />
+      <entry key="D1" value="0.9989614366451102" />
+      <entry key="W1" value="0.9998515677263746" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.9526524360153548" />
+      <entry key="MS500" value="1.1169795054105518" />
+      <entry key="S2" value="2.1487476619084434" />
+      <entry key="S5" value="3.5303996184007085" />
+      <entry key="S10" value="5.426110227273503" />
+      <entry key="S30" value="12.971246100610276" />
+      <entry key="S60" value="19.74836858334102" />
+      <entry key="M2" value="25.48537883158197" />
+      <entry key="M5" value="30.172044485452904" />
+      <entry key="M10" value="32.00636454430178" />
+      <entry key="M15" value="32.65243455395992" />
+      <entry key="M30" value="33.31677732467182" />
+      <entry key="H1" value="33.65598984345845" />
+      <entry key="H2" value="33.82739028403007" />
+      <entry key="H4" value="33.91354336094597" />
+      <entry key="D1" value="33.98556942645531" />
+      <entry key="W1" value="33.99793797124089" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3JaosVM02QRoENnZGI8raz41FVj" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/image-messaging&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/javaProject/nyanya_gateway&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.24374.151" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.24374.151" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6298f9f5-8fad-4e43-a6cf-678c17d3d789" name="Changes" comment="" />
+      <created>1789908746479</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1789908746479</updated>
+    </task>
+    <task id="LOCAL-00001" summary="新增图片预览&#10;新增查看私聊/群聊历史功能（每次进入都会拉取历史会话，不一定是真的消息）">
+      <option name="closed" value="true" />
+      <created>1789909375313</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1789909375313</updated>
+    </task>
+    <task id="LOCAL-00002" summary="新增图片预览&#10;新增查看私聊/群聊历史功能（每次进入都会拉取历史会话，不一定是真的消息）">
+      <option name="closed" value="true" />
+      <created>1789910649582</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1789910649582</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="feature/image-messaging" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="新增图片预览&#10;新增查看私聊/群聊历史功能（每次进入都会拉取历史会话，不一定是真的消息）" />
+    <option name="LAST_COMMIT_MESSAGE" value="新增图片预览&#10;新增查看私聊/群聊历史功能（每次进入都会拉取历史会话，不一定是真的消息）" />
+    <option name="NON_MODAL_COMMIT_POSTPONE_SLOW_CHECKS" value="false" />
+  </component>
+</project>

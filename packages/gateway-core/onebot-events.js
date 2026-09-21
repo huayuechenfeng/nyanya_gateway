@@ -41,7 +41,10 @@ function normalizeOneBotMessage(event, options) {
   const opts = options || {};
   const senderId = toIdString(event.user_id);
   const selfId = toIdString(opts.selfId === undefined ? event.self_id : opts.selfId);
-  if (senderId && selfId && senderId === selfId) return null;
+  const isSelf = !!(senderId && selfId && senderId === selfId);
+  // 默认丢弃「自己发的」消息，避免多端回显（第一方网关依赖此行为）。
+  // 需要「同号多端同步」的调用方传 allowSelf: true 放行，并在上层自行去重。
+  if (isSelf && !opts.allowSelf) return null;
 
   const chatType = event.message_type;
   const peerId = chatType === 'group' ? toIdString(event.group_id) : senderId;
@@ -64,6 +67,7 @@ function normalizeOneBotMessage(event, options) {
     time: Number(event.time) || nowSeconds,
     messageId: toIdString(event.message_id),
     groupName: chatType === 'group' ? safeText(event.group_name) : '',
+    isSelf,
   };
 }
 

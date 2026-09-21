@@ -8,4 +8,4 @@
 npm run test:core
 ```
 
-架构说明见 [DESIGN.md](../../DESIGN.md)。
+架构说明见 [架构说明.md](../../架构说明.md)。

@@ -9,6 +9,13 @@
   "friendPresence": 10,
   "pushGroupMessages": true,
   "mutedGroupIds": [],
+  "replayGroupHistoryOnLogin": false,
+  "replayGroupHistoryLimit": 10,
+  "replayGroupHistoryDelayMs": 1200,
+  "replayPrivateHistoryOnLogin": false,
+  "replayPrivateHistoryLimit": 10,
+  "replayPrivateHistoryDelayMs": 1500,
+  "replayCursorTtlMs": 600000,
   "notifyIntervalSeconds": 60,
   "buddyDetailsPageSize": 100,
   "symbianBuddyDetailsPageSize": 25,
@@ -31,5 +38,7 @@
   "adminPort": 13980,
   "adminToken": "",
   "mobileHost": "0.0.0.0",
-  "mobilePort": 13981
+  "mobilePort": 13981,
+  "mediaPublicHost": "",
+  "loginPublicHost": ""
 }

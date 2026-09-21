@@ -30,6 +30,6 @@ powershell -ExecutionPolicy Bypass -File .\clients\j2me\tools\run-emulator.ps1
 
 客户端声明 `text`、`contacts`、`notice`、`offline` 能力。Node 与 J2ME 共同读取 `packages/nyanya-protocol/vectors/v1.tsv`，验证帧字节完全一致。
 
-完整部署步骤见 [使用与配置手册](../../docs/USAGE.md#通用-nyanya-gateway)，协议见 [Nyanya Protocol v1](../../docs/PROTOCOL.md)。
+完整部署步骤见 [使用与配置手册](../../docs/使用与配置手册.md#通用-nyanya-gateway)，协议见 [Nyanya Protocol v1](../../docs/PROTOCOL.md)。
 
 当前仍保留 `QQJ2ME.jar` 和 `QQJ2ME.jad` 产物名称；Java 包名使用项目命名空间 `com.nyanya.qqj2me`。

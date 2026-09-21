@@ -8,4 +8,4 @@
 npm run test:onebot
 ```
 
-部署说明见 [使用教程](../../docs/USAGE.md#1-准备-napcat)。
+部署说明见 [使用教程](../../docs/使用与配置手册.md#1-准备-napcat)。

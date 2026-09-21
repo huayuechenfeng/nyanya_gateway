@@ -66,6 +66,17 @@ async function testDomain() {
   equal(normalizeOneBotMessage({
     post_type: 'message', message_type: 'private', user_id: 10001, self_id: 10001,
   }), null, 'self messages should be filtered');
+  const selfAllowed = normalizeOneBotMessage({
+    post_type: 'message', message_type: 'group', group_id: 20002,
+    user_id: 10001, self_id: 10001,
+    sender: { nickname: 'Alice' },
+    message: [{ type: 'text', data: { text: '多端同步' } }],
+    message_id: 456,
+  }, { selfId: '10001', allowSelf: true });
+  equal(selfAllowed.isSelf, true, 'allowSelf exposes self message with isSelf flag');
+  equal(selfAllowed.text, '多端同步');
+  equal(selfAllowed.peerId, '20002');
+  equal(selfAllowed.messageId, '456');
   const fallback = normalizeOneBotMessage({
     post_type: 'message', message_type: 'group', group_id: 20002, user_id: 10001,
     sender: {}, message: [],

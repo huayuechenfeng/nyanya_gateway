@@ -884,10 +884,32 @@ async function main() {
     groupId: 20002,
     memberUins: [],
     text: '\u725B\u7684',
+    lengthProfile: 'text',
+  });
+  // QQ2011 J2ME 11.00.12 用同一个命令、同样的正文起点（offset 17）和同样的
+  // 16 字节尾，但把正文前那十个固定头字节也算进 encoded-body length。真实抓包
+  // （发给群 1126386035 的 "abc"）：0x0020 = 10 头 + 6 正文 + 16 尾，而
+  // payload.length - 17 只有 22。两者必须都接受。
+  const capturedQq2011GroupSend = Buffer.from(
+    '1a4323497300200001000000000000000000610062006300200000'
+    + '090000000086028b5b534f0d',
+    'hex',
+  );
+  assert.deepEqual(protocol.parseGroupServiceRequest(capturedQq2011GroupSend), {
+    subtype: 26,
+    groupId: 1126386035,
+    memberUins: [],
+    text: 'abc',
+    lengthProfile: 'fixed-header',
   });
   const malformedSymbianGroupSend = Buffer.from(capturedSymbianGroupSend);
   malformedSymbianGroupSend.writeUInt16BE(0x0015, 5);
   assert.throws(() => protocol.parseGroupServiceRequest(malformedSymbianGroupSend),
+    /length\/header is invalid/);
+  // 两种长度语义都对不上时必须仍然拒绝（0x0021 = 33，既不等于 37-17 也不等于 37-7）。
+  const malformedQq2011GroupSend = Buffer.from(capturedQq2011GroupSend);
+  malformedQq2011GroupSend.writeUInt16BE(0x0021, 5);
+  assert.throws(() => protocol.parseGroupServiceRequest(malformedQq2011GroupSend),
     /length\/header is invalid/);
   assert.equal(protocol.buildFriendAddedPayload({ uin: 10002, nickname: 'B' }).readUInt32BE(2), 10002);
   assert.deepEqual(protocol.parseFriendPreflightPayload(Buffer.from([0, 0, 0x27, 0x12])), {
