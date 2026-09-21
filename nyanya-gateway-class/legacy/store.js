@@ -267,8 +267,10 @@ function normalizeData(data) {
 }
 
 class AccountStore {
-  constructor(dataFile, initialData) {
-    this.persistence = new SqlitePersistence(dataFile);
+  constructor(dataFile, initialData, options) {
+    this.persistence = new SqlitePersistence(dataFile, {
+      logger: options ? options.logger : null,
+    });
     this.dataFile = this.persistence.databaseFile;
     this.legacyDataFile = this.persistence.legacyDataFile;
     const stored = this.persistence.load();
@@ -278,7 +280,8 @@ class AccountStore {
   }
 
   save() {
-    this.persistence.save(this.data);
+    // 返回收敛报告（persistence 层已就失效引用写过日志），测试与上层可用。
+    return this.persistence.save(this.data);
   }
 
   get(uin) {
@@ -436,6 +439,35 @@ class AccountStore {
     const limit = Math.max(1, Math.min(5000, Number(options && options.limit) || 200));
     return this.data.messages.filter((message) => message.id > afterId
       && (message.from === Number(virtualUin) || message.to === Number(virtualUin))).slice(-limit);
+  }
+
+  // 私聊会话的对端列表：跟该账号有过来往的好友 uin。
+  // 私聊历史回放用它枚举要补推的会话（见 core/private-history.js）。
+  privateConversations(uin) {
+    const self = Number(uin);
+    if (!Number.isInteger(self)) return [];
+    const peers = new Set();
+    for (const message of this.data.messages) {
+      if (message.from === self && message.to !== self) peers.add(message.to);
+      else if (message.to === self && message.from !== self) peers.add(message.from);
+    }
+    return Array.from(peers);
+  }
+
+  // 某会话里「对方发给本账号」的消息，最近 limit 条。
+  // 刻意不含自己发的：0x0056 载荷只带发送者、没带接收者，客户端只能靠 from
+  // 决定落到哪个会话，from 是自己时它无从路由（详见 core/private-history.js）。
+  // afterId 是回放水位（core/replay-cursor.js）：>0 时只取它之后的新消息，
+  // 增量超过 limit 时仍取最新的 limit 条（宁可漏中间几条，也别把窗口撑爆）。
+  incomingPrivateMessages(uin, peerUin, limit, afterId) {
+    const self = Number(uin);
+    const peer = Number(peerUin);
+    if (!Number.isInteger(self) || !Number.isInteger(peer)) return [];
+    const maximum = Math.max(1, Math.min(500, Number(limit) || 20));
+    const floor = Math.max(0, Number(afterId) || 0);
+    return this.data.messages.filter(
+      (message) => message.from === peer && message.to === self
+        && message.id > floor).slice(-maximum);
   }
 
   setRelationship(virtualUin, targetUin, changes) {
@@ -631,18 +663,23 @@ class AccountStore {
       (message) => message.id > afterId && groupIds.has(message.groupId)).slice(-limit);
   }
 
-  recentGroupMessages(groupId, limit) {
+  // 同 incomingPrivateMessages：afterId 是回放水位，>0 时只取它之后的增量。
+  recentGroupMessages(groupId, limit, afterId) {
     const group = this.getGroup(groupId);
     if (!group) return [];
     const maximum = Math.max(1, Math.min(500, Number(limit) || 100));
+    const floor = Math.max(0, Number(afterId) || 0);
     return this.data.groupMessages.filter(
-      (message) => message.groupId === group.id).slice(-maximum);
+      (message) => message.groupId === group.id && message.id > floor).slice(-maximum);
   }
 
   saveMedia(value) {
     const from = integerUin(value.from);
     const to = integerUin(value.to);
-    if (!this.get(from) || !this.get(to)) throw new Error('media accounts were not found');
+    // 带上原文，真机上收到意料之外的收件人时日志能直接看出来。
+    if (!this.get(from)) throw new Error(`media sender account was not found: ${from}`);
+    // 群图片的收件人是群号、不是账号，必须放行；私聊仍要求收件人是账号。
+    if (!this.get(to) && !this.getGroup(to)) throw new Error(`media recipient was not found: ${to}`);
     if (!Buffer.isBuffer(value.content) || value.content.length <= 0
         || value.content.length > 10002432) throw new Error('media content has an invalid size');
     if (Number(value.size) !== value.content.length) throw new Error('media size does not match content');

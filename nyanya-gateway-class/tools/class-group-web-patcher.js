@@ -91,8 +91,11 @@ function main(args) {
     changes.push(...result.changes);
   }
   const bids = new Set(changes.map((change) => new URL(change.from).searchParams.get('bid')));
-  if (!bids.has('205') || !bids.has('342')) {
-    throw new Error('J2ME create/search group WAP entries were not both found');
+  // 曾经要求必须同时命中 bid=205/342（建群/查群），用来证明"补丁确实打在该客户端上"。
+  // 现在所有 ?bid= 入口都会重定向到网关，所以只在完全找不到入口时才报错——
+  // 那样意味着这个客户端根本没有 WAP 入口，重写是空操作，需要让上层知道。
+  if (bids.size === 0) {
+    throw new Error('no ?bid= WAP entries were found to redirect');
   }
   process.stdout.write(JSON.stringify({
     modifiedFiles, replacements: changes.length, bids: Array.from(bids).sort((a, b) => Number(a) - Number(b)),

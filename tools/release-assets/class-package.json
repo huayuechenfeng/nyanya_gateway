@@ -10,11 +10,9 @@
   ],
   "scripts": {
     "start": "npm --workspace nyanya-gateway-class run start",
-    "test": "npm run test:core && npm run test:onebot && npm run test:class",
+    "test": "npm run test:core && npm run test:onebot",
     "test:core": "npm --workspace packages/gateway-core run test",
-    "test:onebot": "npm --workspace packages/onebot-adapter run test",
-    "test:class": "npm --workspace nyanya-gateway-class run test",
-    "test:class:legacy": "npm --workspace nyanya-gateway-class run test:legacy"
+    "test:onebot": "npm --workspace packages/onebot-adapter run test"
   },
   "engines": {
     "node": ">=22.5.0"

@@ -110,8 +110,8 @@ function classifyInventory(inventory) {
   if (supportLevel !== 'full' && isQq2008OrEarlier(inventory.manifest)) {
     warnings.push('QQ2008 及以下存在已知登录兼容性风险；QQ2008 12.05.2 实测会提示“付费用户余额不足（ID 31）”。推荐使用 QQ2009 及以上版本。');
   }
-  if (fullProfile && (!groupBids.has('205') || !groupBids.has('342'))) {
-    warnings.push('没有同时发现 bid=205/342 群网页入口，将跳过群网页重定向。');
+  if (groupBids.size === 0) {
+    warnings.push('没有发现任何 ?bid= 的 WAP 网页入口，将跳过 WAP 重定向。');
   }
   if (inventory.signedEntries.length > 0) {
     warnings.push('JAR 带有签名文件；修改后签名会失效，因此拒绝生成。');
@@ -125,7 +125,10 @@ function classifyInventory(inventory) {
       methodReference: fullProfile && routeKind === 'http-jl-helper',
       httpHelper: fullProfile && (routeKind === 'http-jl-helper' || routeKind === 'http-open-helper'),
       forceAoDirect: fullProfile,
-      groupWeb: fullProfile && groupBids.has('205') && groupBids.has('342'),
+      // WAP 入口不再挑版本：腾讯那批 ?bid= 页面（建群/查群/看图）在局域网隔离下本来
+      // 就不可达，被 guard 打成 127.0.0.1:1 只是变成死地址。只要发现入口就重定向到网关，
+      // 至少能让网关给出兼容页。实验性客户端（例如 QQ2011 11.00.12）也要走这一步。
+      groupWeb: groupBids.size > 0,
     },
     warnings,
   };

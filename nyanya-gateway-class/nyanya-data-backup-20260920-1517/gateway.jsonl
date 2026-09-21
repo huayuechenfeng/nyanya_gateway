@@ -1,0 +1,518 @@
+2026-09-19T16:06:44.673Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-19T16:06:44.676Z [info] 管理页: http://127.0.0.1:13980
+2026-09-19T16:06:44.676Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-19T16:06:44.676Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-19T16:06:44.676Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-19T16:06:44.676Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-19T16:06:44.679Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-19T16:06:44.682Z [info] [napcat] 已创建设备账号 2948126361（老客户端用它 + token 登录）
+2026-09-19T16:06:44.905Z [info] [napcat] 镜像已刷新：self=2948126361(胖虎) 好友=2 群=0
+{"time":"2026-09-19T16:11:33.904Z","event":"connection","peer":"192.168.1.3:6472"}
+{"time":"2026-09-19T16:11:33.938Z","event":"packet","peer":"192.168.1.3:6472","command":"0x0080","sequence":101,"uin":88888888,"bytes":367}
+{"time":"2026-09-19T16:11:33.938Z","event":"unimplemented_command","peer":"192.168.1.3:6472","uin":88888888,"command":"0x0080","encryptedBytes":352,"loggedIn":false,"plainBytes":null}
+{"time":"2026-09-19T16:12:40.218Z","event":"connection","peer":"192.168.1.3:6596"}
+{"time":"2026-09-19T16:12:41.220Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0049","sequence":63802,"uin":2948126361,"bytes":58}
+{"time":"2026-09-19T16:12:41.221Z","event":"get_key_ok","peer":"192.168.1.3:6596","uin":2948126361}
+{"time":"2026-09-19T16:12:42.219Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0050","sequence":2,"uin":2948126361,"bytes":95}
+{"time":"2026-09-19T16:12:42.220Z","event":"session_key_variant_selected","peer":"192.168.1.3:6596","uin":2948126361,"variant":"payload_first_16"}
+{"time":"2026-09-19T16:12:42.233Z","event":"login_ok","peer":"192.168.1.3:6596","uin":2948126361,"presence":10,"clientFamily":"legacy","clientConstant":"36464232383642424646374234353341","extensionTypes":[4,7]}
+{"time":"2026-09-19T16:12:42.233Z","event":"group_notify_config_pushed","peer":"192.168.1.3:6596","uin":2948126361,"intervalSeconds":60,"reason":"login"}
+{"time":"2026-09-19T16:12:43.219Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0064","sequence":3,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:12:43.219Z","event":"auxiliary_key_ok","peer":"192.168.1.3:6596","uin":2948126361}
+{"time":"2026-09-19T16:12:43.220Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0054","sequence":4,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:12:43.221Z","event":"buddy_list_ok","peer":"192.168.1.3:6596","uin":2948126361,"requestCursors":[0,0],"count":1,"groupCount":0,"groupIds":[],"relationType":1,"groupIndex":0,"nextCursor":0}
+{"time":"2026-09-19T16:12:44.220Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":5,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:12:44.221Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:12:45.220Z","event":"packet","peer":"192.168.1.3:6596","command":"0x006c","sequence":6,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:12:45.221Z","event":"extended_service_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":31,"responseBytes":8}
+{"time":"2026-09-19T16:12:46.220Z","event":"packet","peer":"192.168.1.3:6596","command":"0x005a","sequence":7,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:12:46.222Z","event":"profile_ok","peer":"192.168.1.3:6596","uin":2948126361,"targetUin":2948126361,"found":true,"subtype":3}
+{"time":"2026-09-19T16:12:47.221Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0072","sequence":9,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:12:47.222Z","event":"buddy_tokens_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":null,"targetUin":2948126361}
+{"time":"2026-09-19T16:12:47.223Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0083","sequence":10,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:12:47.223Z","event":"friend_activity_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":1,"requested":[2948126361]}
+{"time":"2026-09-19T16:12:47.224Z","event":"packet","peer":"192.168.1.3:6596","command":"0x008e","sequence":11,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:12:47.224Z","event":"auxiliary_features_ok","peer":"192.168.1.3:6596","uin":2948126361}
+{"time":"2026-09-19T16:12:50.223Z","event":"packet","peer":"192.168.1.3:6596","command":"0x006a","sequence":8,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:12:50.223Z","event":"friend_metadata_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":3,"requested":[2948126361],"returned":1}
+{"time":"2026-09-19T16:12:55.225Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0069","sequence":12,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:12:55.226Z","event":"friend_roster_ok","peer":"192.168.1.3:6596","uin":2948126361,"requestCursor":0,"requestReserved":0,"count":1,"nextCursor":-1,"fullPage":false,"terminalReplay":false,"syncComplete":false}
+{"time":"2026-09-19T16:12:57.226Z","event":"packet","peer":"192.168.1.3:6596","command":"0x008f","sequence":13,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:12:57.226Z","event":"unimplemented_command","peer":"192.168.1.3:6596","uin":2948126361,"command":"0x008f","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+{"time":"2026-09-19T16:13:06.231Z","event":"packet","peer":"192.168.1.3:6596","command":"0x006b","sequence":14,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:13:06.232Z","event":"friend_service_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":0,"requestHex":"0000"}
+{"time":"2026-09-19T16:13:06.232Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0072","sequence":15,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:13:06.232Z","event":"buddy_tokens_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":1,"cursor":0,"targetUin":null}
+{"time":"2026-09-19T16:13:16.236Z","event":"packet","peer":"192.168.1.3:6596","command":"0x006a","sequence":16,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:13:16.236Z","event":"friend_metadata_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":3,"requested":[2679375266],"returned":1}
+{"time":"2026-09-19T16:13:26.243Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0079","sequence":17,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:13:26.244Z","event":"unimplemented_command","peer":"192.168.1.3:6596","uin":2948126361,"command":"0x0079","encryptedBytes":16,"loggedIn":true,"plainBytes":1}
+{"time":"2026-09-19T16:13:26.246Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0089","sequence":18,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:13:26.246Z","event":"unimplemented_command","peer":"192.168.1.3:6596","uin":2948126361,"command":"0x0089","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+{"time":"2026-09-19T16:14:11.260Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0055","sequence":19,"uin":2948126361,"bytes":63}
+{"time":"2026-09-19T16:14:11.261Z","event":"message_sent","peer":"192.168.1.3:6596","from":2948126361,"to":2679375266,"text":"我在用手机QQ！","authorized":true,"delivered":true,"queuedOffline":false,"transport":"napcat"}
+2026-09-19T16:14:11.402Z [info] [send] 私聊 2948126361 -> 2679375266: 我在用手机QQ！
+{"time":"2026-09-19T16:15:11.290Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0055","sequence":20,"uin":2948126361,"bytes":55}
+{"time":"2026-09-19T16:15:11.292Z","event":"message_sent","peer":"192.168.1.3:6596","from":2948126361,"to":2679375266,"text":"\u0014N","authorized":true,"delivered":true,"queuedOffline":false,"transport":"napcat"}
+2026-09-19T16:15:11.423Z [info] [send] 私聊 2948126361 -> 2679375266: N
+{"time":"2026-09-19T16:15:56.310Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":21,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:15:56.311Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:18:56.398Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":22,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:18:56.398Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:20:00.433Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0055","sequence":23,"uin":2948126361,"bytes":55}
+{"time":"2026-09-19T16:20:00.435Z","event":"message_sent","peer":"192.168.1.3:6596","from":2948126361,"to":2679375266,"text":"真好啊","authorized":true,"delivered":true,"queuedOffline":false,"transport":"napcat"}
+2026-09-19T16:20:00.588Z [info] [send] 私聊 2948126361 -> 2679375266: 真好啊
+{"time":"2026-09-19T16:21:56.502Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":24,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:21:56.502Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:22:55.532Z","event":"system_notice_pushed","uin":2948126361,"text":"群成员增加","reason":"napcat_group_increase"}
+{"time":"2026-09-19T16:22:55.578Z","event":"system_notice_pushed","uin":2948126361,"text":"群成员增加","reason":"napcat_group_increase"}
+{"time":"2026-09-19T16:22:56.116Z","event":"group_relation_pushed","uin":2948126361,"groupIds":[974174982],"reason":"napcat_mirror_refresh"}
+{"time":"2026-09-19T16:22:56.116Z","event":"group_mapping_pushed","uin":2948126361,"groupIds":[974174982],"reason":"napcat_mirror_refresh"}
+2026-09-19T16:22:56.116Z [info] [napcat] 镜像已刷新：self=2948126361(胖虎) 好友=2 群=1
+{"time":"2026-09-19T16:22:56.531Z","event":"packet","peer":"192.168.1.3:6596","command":"0x005a","sequence":25,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:22:56.532Z","event":"profile_ok","peer":"192.168.1.3:6596","uin":2948126361,"targetUin":0,"found":false,"subtype":2}
+{"time":"2026-09-19T16:22:56.533Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0072","sequence":27,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:22:56.533Z","event":"buddy_tokens_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":null,"targetUin":0}
+{"time":"2026-09-19T16:22:56.533Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0083","sequence":28,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:22:56.534Z","event":"friend_activity_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":1,"requested":[0]}
+{"time":"2026-09-19T16:22:56.535Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0084","sequence":29,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:22:56.535Z","event":"unimplemented_command","peer":"192.168.1.3:6596","uin":2948126361,"command":"0x0084","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+{"time":"2026-09-19T16:23:00.532Z","event":"packet","peer":"192.168.1.3:6596","command":"0x006a","sequence":26,"uin":2948126361,"bytes":39}
+{"time":"2026-09-19T16:23:00.533Z","event":"friend_metadata_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":3,"requested":[0],"returned":0}
+2026-09-19T16:23:22.106Z [info] [napcat] 收到请求事件（v1 不处理）: friend
+{"time":"2026-09-19T16:24:56.598Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":30,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:24:56.599Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:27:56.700Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":31,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:27:56.701Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:28:02.703Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0055","sequence":32,"uin":2948126361,"bytes":55}
+{"time":"2026-09-19T16:28:02.704Z","event":"message_sent","peer":"192.168.1.3:6596","from":2948126361,"to":0,"text":"在吗","authorized":false,"delivered":false,"queuedOffline":false,"transport":"napcat"}
+{"time":"2026-09-19T16:29:54.756Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0055","sequence":33,"uin":2948126361,"bytes":55}
+{"time":"2026-09-19T16:29:54.785Z","event":"message_sent","peer":"192.168.1.3:6596","from":2948126361,"to":2679375266,"text":"在吗","authorized":true,"delivered":true,"queuedOffline":false,"transport":"napcat"}
+2026-09-19T16:29:54.956Z [info] [send] 私聊 2948126361 -> 2679375266: 在吗
+{"time":"2026-09-19T16:30:56.789Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":34,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:30:56.789Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:33:56.870Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":35,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:33:56.871Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:35:09.906Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0078","sequence":36,"uin":2948126361,"bytes":47}
+{"time":"2026-09-19T16:35:09.916Z","event":"search_ok","peer":"192.168.1.3:6596","uin":2948126361,"query":"浮生若梦","results":[2679375266]}
+{"time":"2026-09-19T16:36:01.935Z","event":"packet","peer":"192.168.1.3:6596","command":"0x005a","sequence":37,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:36:01.936Z","event":"profile_ok","peer":"192.168.1.3:6596","uin":2948126361,"targetUin":3345312435,"found":false,"subtype":2}
+{"time":"2026-09-19T16:36:41.958Z","event":"packet","peer":"192.168.1.3:6596","command":"0x005a","sequence":38,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:36:41.959Z","event":"profile_ok","peer":"192.168.1.3:6596","uin":2948126361,"targetUin":498184016,"found":false,"subtype":2}
+{"time":"2026-09-19T16:36:56.968Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":39,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:36:56.969Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:39:57.061Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":40,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:39:57.062Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:40:22.075Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0055","sequence":41,"uin":2948126361,"bytes":55}
+{"time":"2026-09-19T16:40:22.100Z","event":"message_sent","peer":"192.168.1.3:6596","from":2948126361,"to":2679375266,"text":"而法国","authorized":true,"delivered":true,"queuedOffline":false,"transport":"napcat"}
+2026-09-19T16:40:22.275Z [info] [send] 私聊 2948126361 -> 2679375266: 而法国
+{"time":"2026-09-19T16:42:57.159Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0071","sequence":42,"uin":2948126361,"bytes":31}
+{"time":"2026-09-19T16:42:57.160Z","event":"buddy_details_ok","peer":"192.168.1.3:6596","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-19T16:45:19.233Z","event":"packet","peer":"192.168.1.3:6596","command":"0x0051","sequence":43,"uin":2948126361,"bytes":15}
+{"time":"2026-09-19T16:45:19.234Z","event":"logout_ok","peer":"192.168.1.3:6596","uin":2948126361}
+{"time":"2026-09-19T16:45:19.275Z","event":"disconnect","peer":"192.168.1.3:6596","uin":2948126361}
+{"time":"2026-09-19T16:45:21.696Z","event":"socket_error","peer":"192.168.1.3:6472","message":"read ECONNRESET"}
+{"time":"2026-09-19T16:45:21.696Z","event":"disconnect","peer":"192.168.1.3:6472"}
+2026-09-19T16:59:00.202Z [error] [onebot] ws error: read ECONNRESET
+2026-09-19T16:59:16.208Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-19T16:59:17.225Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-19T16:59:18.096Z [info] 收到 SIGINT，正在关闭...
+2026-09-19T16:59:18.099Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T05:51:48.039Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T05:51:48.047Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T05:51:48.047Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T05:51:48.047Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T05:51:48.047Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T05:51:48.047Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T05:51:48.049Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T05:51:49.058Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T05:51:51.061Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T05:51:55.078Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T05:53:09.587Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T05:53:09.589Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T05:53:09.589Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T05:53:09.590Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T05:53:09.590Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T05:53:09.590Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T05:53:09.593Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T05:53:09.620Z [info] [napcat] 设备账号密码已同步为 config 中的 token
+2026-09-20T05:53:22.862Z [info] [napcat] 镜像已刷新：self=2679375266(浮生若梦，为欢几何！) 好友=87 群=24
+2026-09-20T05:53:23.217Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=2298555232: [图片]
+{"time":"2026-09-20T05:53:29.540Z","event":"connection","peer":"192.168.1.3:4590"}
+{"time":"2026-09-20T05:53:29.572Z","event":"packet","peer":"192.168.1.3:4590","command":"0x0080","sequence":101,"uin":88888888,"bytes":383}
+{"time":"2026-09-20T05:53:29.572Z","event":"unimplemented_command","peer":"192.168.1.3:4590","uin":88888888,"command":"0x0080","encryptedBytes":368,"loggedIn":false,"plainBytes":null}
+{"time":"2026-09-20T05:53:44.964Z","event":"connection","peer":"192.168.1.3:4611"}
+{"time":"2026-09-20T05:53:45.968Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0049","sequence":14547,"uin":2948126361,"bytes":58}
+{"time":"2026-09-20T05:53:45.969Z","event":"get_key_ok","peer":"192.168.1.3:4611","uin":2948126361}
+{"time":"2026-09-20T05:53:46.965Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0050","sequence":14548,"uin":2948126361,"bytes":95}
+{"time":"2026-09-20T05:53:46.966Z","event":"session_key_variant_selected","peer":"192.168.1.3:4611","uin":2948126361,"variant":"payload_first_16"}
+{"time":"2026-09-20T05:53:46.968Z","event":"login_ok","peer":"192.168.1.3:4611","uin":2948126361,"presence":10,"clientFamily":"legacy","clientConstant":"36464232383642424646374234353341","extensionTypes":[4,7]}
+{"time":"2026-09-20T05:53:46.971Z","event":"group_notify_config_pushed","peer":"192.168.1.3:4611","uin":2948126361,"intervalSeconds":60,"reason":"login"}
+{"time":"2026-09-20T05:53:47.966Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0064","sequence":14549,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:53:47.967Z","event":"auxiliary_key_ok","peer":"192.168.1.3:4611","uin":2948126361}
+{"time":"2026-09-20T05:53:47.967Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0054","sequence":14550,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T05:53:47.969Z","event":"buddy_list_ok","peer":"192.168.1.3:4611","uin":2948126361,"requestCursors":[0,0],"count":1,"groupCount":0,"groupIds":[],"relationType":1,"groupIndex":0,"nextCursor":0}
+{"time":"2026-09-20T05:53:48.966Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0071","sequence":14551,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:53:48.967Z","event":"buddy_details_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-20T05:53:49.965Z","event":"packet","peer":"192.168.1.3:4611","command":"0x006c","sequence":14552,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:53:49.966Z","event":"extended_service_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":31,"responseBytes":8}
+{"time":"2026-09-20T05:53:50.966Z","event":"packet","peer":"192.168.1.3:4611","command":"0x005a","sequence":14553,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:53:50.968Z","event":"profile_ok","peer":"192.168.1.3:4611","uin":2948126361,"targetUin":2948126361,"found":true,"subtype":3}
+{"time":"2026-09-20T05:53:51.966Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0072","sequence":14555,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:53:51.967Z","event":"buddy_tokens_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":null,"targetUin":2948126361}
+{"time":"2026-09-20T05:53:51.968Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0083","sequence":14556,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T05:53:51.969Z","event":"friend_activity_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":1,"requested":[2948126361]}
+{"time":"2026-09-20T05:53:51.969Z","event":"packet","peer":"192.168.1.3:4611","command":"0x008e","sequence":14557,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:53:51.970Z","event":"auxiliary_features_ok","peer":"192.168.1.3:4611","uin":2948126361}
+{"time":"2026-09-20T05:53:54.972Z","event":"packet","peer":"192.168.1.3:4611","command":"0x006a","sequence":14554,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T05:53:54.974Z","event":"friend_metadata_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":3,"requested":[2948126361],"returned":1}
+{"time":"2026-09-20T05:53:59.976Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0069","sequence":14558,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:53:59.978Z","event":"friend_roster_ok","peer":"192.168.1.3:4611","uin":2948126361,"requestCursor":0,"requestReserved":0,"count":1,"nextCursor":-1,"fullPage":false,"terminalReplay":false,"syncComplete":false}
+{"time":"2026-09-20T05:54:01.977Z","event":"packet","peer":"192.168.1.3:4611","command":"0x008f","sequence":14559,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T05:54:01.977Z","event":"unimplemented_command","peer":"192.168.1.3:4611","uin":2948126361,"command":"0x008f","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+{"time":"2026-09-20T05:54:10.989Z","event":"packet","peer":"192.168.1.3:4611","command":"0x006b","sequence":14560,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:54:10.990Z","event":"friend_service_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":0,"requestHex":"0000"}
+{"time":"2026-09-20T05:54:10.990Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0072","sequence":14561,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:54:10.991Z","event":"buddy_tokens_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":1,"cursor":0,"targetUin":null}
+2026-09-20T05:54:11.907Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=695638176: 有人玩的时候掉帧吗
+{"time":"2026-09-20T05:54:20.993Z","event":"packet","peer":"192.168.1.3:4611","command":"0x006a","sequence":14562,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T05:54:20.993Z","event":"friend_metadata_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":3,"requested":[2679375266],"returned":1}
+2026-09-20T05:54:23.110Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=695638176: 昨天卡了我一晚上，恶心死了
+{"time":"2026-09-20T05:54:30.998Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0079","sequence":14563,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:54:30.998Z","event":"unimplemented_command","peer":"192.168.1.3:4611","uin":2948126361,"command":"0x0079","encryptedBytes":16,"loggedIn":true,"plainBytes":1}
+{"time":"2026-09-20T05:54:30.998Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0089","sequence":14564,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T05:54:30.999Z","event":"unimplemented_command","peer":"192.168.1.3:4611","uin":2948126361,"command":"0x0089","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+2026-09-20T05:55:53.775Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: [图片]
+2026-09-20T05:56:07.894Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: [消息]@3300802151  一看就有假的
+2026-09-20T05:56:08.576Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=2597361283: [表情]
+2026-09-20T05:56:14.602Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: 有人造谣
+2026-09-20T05:56:59.672Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=2597361283: 太坏了
+{"time":"2026-09-20T05:57:01.092Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0071","sequence":14565,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T05:57:01.093Z","event":"buddy_details_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T05:57:12.988Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: 他们是被境外势力秘密绑架了。
+2026-09-20T05:57:54.623Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=2298555232: [消息]@695638176  没这情况
+2026-09-20T05:58:48.268Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=695638176: 我看巴哈姆特上也有人说这个问题，好像打灵活的时候最明显
+{"time":"2026-09-20T06:00:01.184Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0071","sequence":14566,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:00:01.186Z","event":"buddy_details_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:01:01.459Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=614530019: ame打开没反应啊
+2026-09-20T06:01:08.247Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2601743224: 外服封了也没事儿啊
+2026-09-20T06:01:14.592Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2601743224: 外服账号便宜啊
+2026-09-20T06:01:18.296Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=614530019: 群主救救
+2026-09-20T06:02:48.149Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=427748743: 怕封就别用呗
+2026-09-20T06:02:55.009Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=427748743: 一直问的去
+2026-09-20T06:03:00.089Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=427748743: [图片]
+{"time":"2026-09-20T06:03:01.271Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0071","sequence":14567,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:03:01.272Z","event":"buddy_details_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:03:02.897Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1060368261: [消息]@695638176  我也卡
+2026-09-20T06:03:04.705Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1060368261: 昨天晚上
+2026-09-20T06:03:08.176Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1060368261: 麻痹
+2026-09-20T06:03:26.583Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1060368261: 一卡一卡的打单双
+2026-09-20T06:03:27.342Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=695638176: 那看来就是拳头的问题
+2026-09-20T06:03:31.189Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=3300802151: [消息]@1279492913  什么神秘势力这么厉害 敢在这两个国家手里抢人
+2026-09-20T06:03:35.111Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=695638176: 太傻逼了
+2026-09-20T06:03:44.972Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=695638176: 昨天真给我卡吐了
+2026-09-20T06:04:09.128Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: 所以是秘密
+2026-09-20T06:04:12.864Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: 偷偷摸摸
+2026-09-20T06:05:00.143Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: 反正我不相信他们一家会跑路
+2026-09-20T06:05:03.502Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: [图片]
+2026-09-20T06:05:11.946Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 买皮肤
+2026-09-20T06:05:16.710Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 百分百不封
+2026-09-20T06:05:23.220Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 而且别人还能看到
+2026-09-20T06:05:56.710Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 有没有大佬了解保号套餐之类的
+2026-09-20T06:05:57.997Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 教教我
+2026-09-20T06:06:00.946Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 换肤一直是违反用户协议
+{"time":"2026-09-20T06:06:01.382Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0071","sequence":14568,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:06:01.383Z","event":"buddy_details_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:06:17.782Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=614530019: 哪有什么保号套餐
+2026-09-20T06:06:31.895Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 5块钱一个月吧，好像
+2026-09-20T06:06:34.091Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: [图片]
+2026-09-20T06:06:35.415Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 这是我现在的套餐
+2026-09-20T06:06:38.090Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 感觉好亏
+2026-09-20T06:06:48.283Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 一个月就1g流量，今天我才看见这个套餐
+2026-09-20T06:06:50.449Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 这么多年被坑死了
+2026-09-20T06:07:09.598Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 你这个是搞了宽度的
+2026-09-20T06:07:10.368Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=614530019: 我广电201个月
+2026-09-20T06:07:12.579Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 还是没有
+2026-09-20T06:07:13.325Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: [消息]@614530019  用这个
+2026-09-20T06:07:21.021Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: [文件]
+2026-09-20T06:07:26.165Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=614530019: 我广电20一个月
+2026-09-20T06:07:32.880Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1685908713: 我移动19
+2026-09-20T06:07:35.418Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1685908713: 千兆
+2026-09-20T06:07:41.022Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 你们咋都这么便宜
+2026-09-20T06:07:48.372Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 我这个59一个月，100兆网
+2026-09-20T06:07:51.274Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 😭😭😭
+2026-09-20T06:07:52.339Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1685908713: [图片]
+2026-09-20T06:08:02.676Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 隔壁大佬跟我说去弄8元保号套餐
+2026-09-20T06:08:03.962Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 咋弄啊
+2026-09-20T06:08:05.029Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 谁能教教我
+2026-09-20T06:08:11.142Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2941742280: [图片]
+2026-09-20T06:08:16.206Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2941742280: 我这个一个月55
+2026-09-20T06:08:23.532Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2941742280: 加千兆宽带
+2026-09-20T06:08:34.228Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 我草
+2026-09-20T06:08:35.912Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 我这个亏死了
+2026-09-20T06:08:39.705Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: [图片]
+2026-09-20T06:08:46.447Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: [图片]
+2026-09-20T06:08:47.514Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2941742280: 我姐夫给我弄的，真的他太厉害了
+2026-09-20T06:08:59.864Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2941742280: [消息]@1712676985  真是亏
+{"time":"2026-09-20T06:09:01.486Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0071","sequence":14569,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:09:01.487Z","event":"buddy_details_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:10:28.795Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=297853597: 我移动，一个月30
+2026-09-20T06:10:32.324Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=297853597: 千兆宽带
+2026-09-20T06:10:56.909Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 想用ame玩国服[表情]
+2026-09-20T06:11:10.621Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1524396574: 开小号就行
+2026-09-20T06:11:19.145Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 有没有懂保号套餐的
+2026-09-20T06:11:30.667Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 问ai
+2026-09-20T06:11:31.811Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 是小号，但是我怕封了打不了维护了
+2026-09-20T06:11:45.669Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 那还是别用 
+{"time":"2026-09-20T06:12:01.583Z","event":"packet","peer":"192.168.1.3:4611","command":"0x0071","sequence":14570,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:12:01.584Z","event":"buddy_details_ok","peer":"192.168.1.3:4611","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:12:08.090Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 随时会被封 就看腾讯什么时候管 
+2026-09-20T06:12:08.891Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2724529572: [图片]
+2026-09-20T06:12:13.652Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=2724529572: 一个月29可惜不能打电话
+2026-09-20T06:12:33.873Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 不需要 当流量卡 也划算
+2026-09-20T06:13:57.722Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 30才一个月才20个g
+{"time":"2026-09-20T06:14:07.633Z","event":"socket_error","peer":"192.168.1.3:4590","message":"read ECONNRESET"}
+{"time":"2026-09-20T06:14:07.633Z","event":"disconnect","peer":"192.168.1.3:4590"}
+{"time":"2026-09-20T06:14:07.633Z","event":"socket_error","peer":"192.168.1.3:4611","message":"read ECONNRESET"}
+{"time":"2026-09-20T06:14:07.634Z","event":"disconnect","peer":"192.168.1.3:4611","uin":2948126361}
+2026-09-20T06:14:32.570Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: @1480486528  大佬你懂保号吗
+2026-09-20T06:15:16.760Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: [图片]
+{"time":"2026-09-20T06:15:30.322Z","event":"connection","peer":"192.168.1.3:6617"}
+{"time":"2026-09-20T06:15:30.346Z","event":"packet","peer":"192.168.1.3:6617","command":"0x0080","sequence":101,"uin":88888888,"bytes":383}
+{"time":"2026-09-20T06:15:30.346Z","event":"unimplemented_command","peer":"192.168.1.3:6617","uin":88888888,"command":"0x0080","encryptedBytes":368,"loggedIn":false,"plainBytes":null}
+2026-09-20T06:15:43.620Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: [图片]
+2026-09-20T06:15:46.477Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: [消息]@1712676985  不懂
+2026-09-20T06:16:05.793Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 29块钱215G
+{"time":"2026-09-20T06:16:23.552Z","event":"connection","peer":"192.168.1.3:6708"}
+{"time":"2026-09-20T06:16:24.555Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0049","sequence":52360,"uin":2948126361,"bytes":58}
+{"time":"2026-09-20T06:16:24.556Z","event":"get_key_ok","peer":"192.168.1.3:6708","uin":2948126361}
+{"time":"2026-09-20T06:16:25.552Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0050","sequence":2,"uin":2948126361,"bytes":95}
+{"time":"2026-09-20T06:16:25.552Z","event":"session_key_variant_selected","peer":"192.168.1.3:6708","uin":2948126361,"variant":"payload_first_16"}
+{"time":"2026-09-20T06:16:25.553Z","event":"login_ok","peer":"192.168.1.3:6708","uin":2948126361,"presence":10,"clientFamily":"legacy","clientConstant":"36464232383642424646374234353341","extensionTypes":[4,7]}
+{"time":"2026-09-20T06:16:25.554Z","event":"group_notify_config_pushed","peer":"192.168.1.3:6708","uin":2948126361,"intervalSeconds":60,"reason":"login"}
+{"time":"2026-09-20T06:16:26.552Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0064","sequence":3,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:26.553Z","event":"auxiliary_key_ok","peer":"192.168.1.3:6708","uin":2948126361}
+{"time":"2026-09-20T06:16:26.553Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0054","sequence":4,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:16:26.554Z","event":"buddy_list_ok","peer":"192.168.1.3:6708","uin":2948126361,"requestCursors":[0,0],"count":1,"groupCount":0,"groupIds":[],"relationType":1,"groupIndex":0,"nextCursor":0}
+{"time":"2026-09-20T06:16:27.553Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0071","sequence":5,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:27.554Z","event":"buddy_details_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-20T06:16:28.554Z","event":"packet","peer":"192.168.1.3:6708","command":"0x006c","sequence":6,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:28.555Z","event":"extended_service_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":31,"responseBytes":8}
+{"time":"2026-09-20T06:16:29.554Z","event":"packet","peer":"192.168.1.3:6708","command":"0x005a","sequence":7,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:29.555Z","event":"profile_ok","peer":"192.168.1.3:6708","uin":2948126361,"targetUin":2948126361,"found":true,"subtype":3}
+{"time":"2026-09-20T06:16:30.554Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0072","sequence":9,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:30.555Z","event":"buddy_tokens_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":2,"cursor":null,"targetUin":2948126361}
+{"time":"2026-09-20T06:16:30.555Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0083","sequence":10,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:16:30.555Z","event":"friend_activity_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":1,"requested":[2948126361]}
+{"time":"2026-09-20T06:16:30.555Z","event":"packet","peer":"192.168.1.3:6708","command":"0x008e","sequence":11,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:30.555Z","event":"auxiliary_features_ok","peer":"192.168.1.3:6708","uin":2948126361}
+{"time":"2026-09-20T06:16:33.556Z","event":"packet","peer":"192.168.1.3:6708","command":"0x006a","sequence":8,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:16:33.557Z","event":"friend_metadata_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":3,"requested":[2948126361],"returned":1}
+{"time":"2026-09-20T06:16:38.559Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0069","sequence":12,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:38.560Z","event":"friend_roster_ok","peer":"192.168.1.3:6708","uin":2948126361,"requestCursor":0,"requestReserved":0,"count":1,"nextCursor":-1,"fullPage":false,"terminalReplay":false,"syncComplete":false}
+{"time":"2026-09-20T06:16:40.560Z","event":"packet","peer":"192.168.1.3:6708","command":"0x008f","sequence":13,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:16:40.560Z","event":"unimplemented_command","peer":"192.168.1.3:6708","uin":2948126361,"command":"0x008f","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+{"time":"2026-09-20T06:16:49.566Z","event":"packet","peer":"192.168.1.3:6708","command":"0x006b","sequence":14,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:49.566Z","event":"friend_service_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":0,"requestHex":"0000"}
+{"time":"2026-09-20T06:16:49.567Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0072","sequence":15,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:16:49.568Z","event":"buddy_tokens_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":1,"cursor":0,"targetUin":null}
+{"time":"2026-09-20T06:16:59.571Z","event":"packet","peer":"192.168.1.3:6708","command":"0x006a","sequence":16,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:16:59.572Z","event":"friend_metadata_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":3,"requested":[2679375266],"returned":1}
+{"time":"2026-09-20T06:17:09.582Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0079","sequence":17,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:17:09.583Z","event":"unimplemented_command","peer":"192.168.1.3:6708","uin":2948126361,"command":"0x0079","encryptedBytes":16,"loggedIn":true,"plainBytes":1}
+{"time":"2026-09-20T06:17:09.584Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0089","sequence":18,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:17:09.584Z","event":"unimplemented_command","peer":"192.168.1.3:6708","uin":2948126361,"command":"0x0089","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+2026-09-20T06:17:16.717Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: [图片]
+2026-09-20T06:17:18.966Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 我这个太坑了
+2026-09-20T06:17:56.900Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 你这个是宽带套餐
+2026-09-20T06:18:12.234Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 电信宽带 比移动好
+2026-09-20T06:18:23.775Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 移动就是路边一条
+2026-09-20T06:18:31.060Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 刚才隔壁群有个大佬告诉我
+2026-09-20T06:18:37.561Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 让我去办保号套餐
+2026-09-20T06:18:44.742Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 现在先弄个流量卡
+2026-09-20T06:18:47.276Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 我好懵逼
+2026-09-20T06:18:48.678Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 保号套餐还能有宽带吗
+2026-09-20T06:19:18.561Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 不知道
+2026-09-20T06:19:25.143Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: [消息]@827266501  ？
+2026-09-20T06:19:26.611Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 你的意思是不是
+2026-09-20T06:19:30.341Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 保号了
+2026-09-20T06:19:35.838Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 我想把我主号套餐弄低一点
+2026-09-20T06:19:39.550Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 家里是不是就没网络
+{"time":"2026-09-20T06:19:39.659Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0071","sequence":19,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:19:39.660Z","event":"buddy_details_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:19:40.533Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1712676985: 了
+2026-09-20T06:19:59.277Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=1480486528: 你问ai  看看先
+2026-09-20T06:22:30.644Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: [图片]
+{"time":"2026-09-20T06:22:39.751Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0071","sequence":20,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:22:39.752Z","event":"buddy_details_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:22:40.176Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 我主号是这个，现在2年半价
+2026-09-20T06:22:46.657Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 49块一个月
+2026-09-20T06:23:09.435Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=2756267413: [合并转发]
+2026-09-20T06:23:10.765Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: [图片]
+2026-09-20T06:23:18.578Z [info] [napcat] 群消息未投递（设备离线） group=837365980 from=827266501: 一个月115G，但我用不完这么多
+2026-09-20T06:23:34.797Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=2756267413: 好久没有新群友了群友们能不能努努力啊
+2026-09-20T06:23:47.480Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: 不要男的
+2026-09-20T06:23:51.524Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1279492913: 我厌男
+{"time":"2026-09-20T06:24:09.801Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0055","sequence":21,"uin":2948126361,"bytes":55}
+{"time":"2026-09-20T06:24:10.156Z","event":"message_sent","peer":"192.168.1.3:6708","from":2948126361,"to":2679375266,"text":"在吗","authorized":true,"delivered":true,"queuedOffline":false,"transport":"napcat"}
+2026-09-20T06:24:10.335Z [info] [send] 私聊 2948126361 -> 2679375266: 在吗
+2026-09-20T06:24:29.696Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1512266150: 我厌男
+2026-09-20T06:24:31.566Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1342025415: 我厌男
+2026-09-20T06:24:49.665Z [info] [napcat] 群消息未投递（设备离线） group=689546479 from=1172773291: 我厌男
+{"time":"2026-09-20T06:25:39.842Z","event":"packet","peer":"192.168.1.3:6708","command":"0x0071","sequence":22,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:25:39.843Z","event":"buddy_details_ok","peer":"192.168.1.3:6708","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+2026-09-20T06:25:44.306Z [error] [onebot] ws error: read ECONNRESET
+2026-09-20T06:25:44.307Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:25:45.320Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:25:47.334Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:25:51.344Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:25:59.348Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:26:15.362Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:26:49.251Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:26:49.253Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:26:49.253Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:26:49.253Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:26:49.253Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:26:49.254Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:26:49.258Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:26:50.275Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:26:52.287Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:27:31.819Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:27:31.821Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:27:31.821Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:27:31.821Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:27:31.821Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:27:31.821Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:27:31.827Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:27:32.585Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:27:40.976Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:27:40.979Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:27:40.979Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:27:40.979Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:27:40.979Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:27:40.979Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:27:40.984Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:27:41.712Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:28:23.113Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:28:23.116Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:28:23.116Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:28:23.116Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:28:23.117Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:28:23.117Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:28:23.122Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:28:23.820Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:28:31.367Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:28:31.370Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:28:31.370Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:28:31.370Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:28:31.370Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:28:31.370Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:28:31.375Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:28:32.039Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+{"time":"2026-09-20T06:29:03.116Z","event":"connection","peer":"192.168.1.3:4903"}
+{"time":"2026-09-20T06:29:03.141Z","event":"packet","peer":"192.168.1.3:4903","command":"0x0080","sequence":101,"uin":88888888,"bytes":383}
+{"time":"2026-09-20T06:29:03.142Z","event":"unimplemented_command","peer":"192.168.1.3:4903","uin":88888888,"command":"0x0080","encryptedBytes":368,"loggedIn":false,"plainBytes":null}
+{"time":"2026-09-20T06:29:18.089Z","event":"connection","peer":"192.168.1.3:4918"}
+{"time":"2026-09-20T06:29:19.093Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0049","sequence":65529,"uin":2948126361,"bytes":58}
+{"time":"2026-09-20T06:29:19.094Z","event":"get_key_ok","peer":"192.168.1.3:4918","uin":2948126361}
+{"time":"2026-09-20T06:29:20.089Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0050","sequence":2,"uin":2948126361,"bytes":95}
+{"time":"2026-09-20T06:29:20.091Z","event":"session_key_variant_selected","peer":"192.168.1.3:4918","uin":2948126361,"variant":"payload_first_16"}
+{"time":"2026-09-20T06:29:20.094Z","event":"login_ok","peer":"192.168.1.3:4918","uin":2948126361,"presence":10,"clientFamily":"legacy","clientConstant":"36464232383642424646374234353341","extensionTypes":[4,7]}
+{"time":"2026-09-20T06:29:20.097Z","event":"group_mapping_pushed","uin":2948126361,"groupIds":[974174982],"reason":"login"}
+{"time":"2026-09-20T06:29:20.097Z","event":"group_notify_config_pushed","peer":"192.168.1.3:4918","uin":2948126361,"intervalSeconds":60,"reason":"login"}
+{"time":"2026-09-20T06:29:21.089Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0064","sequence":3,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:21.091Z","event":"auxiliary_key_ok","peer":"192.168.1.3:4918","uin":2948126361}
+{"time":"2026-09-20T06:29:21.091Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0054","sequence":4,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:29:21.094Z","event":"buddy_list_ok","peer":"192.168.1.3:4918","uin":2948126361,"requestCursors":[0,0],"count":1,"groupCount":1,"groupIds":[974174982],"relationType":1,"groupIndex":0,"nextCursor":0}
+{"time":"2026-09-20T06:29:22.090Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0071","sequence":5,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:22.093Z","event":"buddy_details_ok","peer":"192.168.1.3:4918","uin":2948126361,"subtype":2,"cursor":0,"count":1,"finalPage":true,"morePages":false,"presence":[{"uin":2679375266,"value":10}]}
+{"time":"2026-09-20T06:29:23.091Z","event":"packet","peer":"192.168.1.3:4918","command":"0x006c","sequence":6,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:23.092Z","event":"extended_service_ok","peer":"192.168.1.3:4918","uin":2948126361,"subtype":31,"responseBytes":8}
+{"time":"2026-09-20T06:29:24.091Z","event":"packet","peer":"192.168.1.3:4918","command":"0x005a","sequence":7,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:24.093Z","event":"profile_ok","peer":"192.168.1.3:4918","uin":2948126361,"targetUin":2948126361,"found":true,"subtype":3}
+{"time":"2026-09-20T06:29:25.091Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0072","sequence":9,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:25.092Z","event":"buddy_tokens_ok","peer":"192.168.1.3:4918","uin":2948126361,"subtype":2,"cursor":null,"targetUin":2948126361}
+{"time":"2026-09-20T06:29:25.093Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0083","sequence":10,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:29:25.094Z","event":"friend_activity_ok","peer":"192.168.1.3:4918","uin":2948126361,"subtype":1,"requested":[2948126361]}
+{"time":"2026-09-20T06:29:25.095Z","event":"packet","peer":"192.168.1.3:4918","command":"0x008e","sequence":11,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:25.095Z","event":"auxiliary_features_ok","peer":"192.168.1.3:4918","uin":2948126361}
+{"time":"2026-09-20T06:29:28.092Z","event":"packet","peer":"192.168.1.3:4918","command":"0x006a","sequence":8,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:29:28.094Z","event":"friend_metadata_ok","peer":"192.168.1.3:4918","uin":2948126361,"subtype":3,"requested":[2948126361],"returned":1}
+{"time":"2026-09-20T06:29:33.096Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0069","sequence":12,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:33.097Z","event":"friend_roster_ok","peer":"192.168.1.3:4918","uin":2948126361,"requestCursor":0,"requestReserved":0,"count":1,"nextCursor":-1,"fullPage":false,"terminalReplay":false,"syncComplete":false}
+{"time":"2026-09-20T06:29:34.096Z","event":"packet","peer":"192.168.1.3:4918","command":"0x006d","sequence":13,"uin":2948126361,"bytes":31}
+{"time":"2026-09-20T06:29:34.101Z","event":"group_service_ok","peer":"192.168.1.3:4918","uin":2948126361,"subtype":4,"groupId":974174982,"memberUins":[],"result":0,"responseProfile":"legacy","probeMatched":false,"responseBytes":5040}
+{"time":"2026-09-20T06:29:35.096Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0070","sequence":14,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:29:35.097Z","event":"group_receive_state_ok","peer":"192.168.1.3:4918","uin":2948126361,"declaredCount":1,"validCount":1,"enabledCount":0,"complete":true,"enabledGroupIds":[]}
+{"time":"2026-09-20T06:29:35.098Z","event":"group_sync_ok","peer":"192.168.1.3:4918","uin":2948126361,"groups":[974174982],"receiveStateApplied":true}
+{"time":"2026-09-20T06:29:35.099Z","event":"packet","peer":"192.168.1.3:4918","command":"0x008f","sequence":15,"uin":2948126361,"bytes":39}
+{"time":"2026-09-20T06:29:35.099Z","event":"unimplemented_command","peer":"192.168.1.3:4918","uin":2948126361,"command":"0x008f","encryptedBytes":24,"loggedIn":true,"plainBytes":11}
+{"time":"2026-09-20T06:29:38.098Z","event":"packet","peer":"192.168.1.3:4918","command":"0x0055","sequence":16,"uin":2948126361,"bytes":55}
+2026-09-20T06:33:41.044Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:33:41.047Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:33:41.047Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:33:41.047Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:33:41.048Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:33:41.048Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:33:41.054Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:33:41.682Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:39:20.893Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:39:20.895Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:39:20.896Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:39:20.896Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:39:20.896Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:39:20.896Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:39:20.901Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:39:21.644Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:39:37.333Z [info] 收到 SIGINT，正在关闭...
+2026-09-20T06:39:37.337Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:39:42.883Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:39:42.885Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:39:42.885Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:39:42.886Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:39:42.886Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:39:42.886Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:39:42.891Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:39:43.592Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:39:45.683Z [info] 收到 SIGINT，正在关闭...
+2026-09-20T06:39:45.687Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:41:36.864Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:41:36.866Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:41:36.866Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:41:36.866Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:41:36.866Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:41:36.866Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:41:36.871Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:41:37.880Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:41:39.894Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:43:26.580Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:43:26.583Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:43:26.583Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:43:26.583Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:43:26.584Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:43:26.584Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:43:26.592Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:43:27.296Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:43:32.664Z [info] 收到 SIGINT，正在关闭...
+2026-09-20T06:43:32.668Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T06:49:01.314Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T06:49:01.317Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T06:49:01.317Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T06:49:01.317Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T06:49:01.317Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T06:49:01.317Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T06:49:01.323Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T06:49:02.048Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T06:49:07.241Z [info] [napcat] 收到请求事件（v1 不处理）: friend
+2026-09-20T07:06:06.077Z [info] 收到 SIGINT，正在关闭...
+2026-09-20T07:06:06.082Z [info] [napcat] NapCat 连接断开，等待重连
+2026-09-20T07:07:34.549Z [info] 老客户端 TCP 网关已监听 0.0.0.0:14000
+2026-09-20T07:07:34.551Z [info] 管理页: http://127.0.0.1:13980
+2026-09-20T07:07:34.551Z [info] 媒体/WAP: 0.0.0.0:13981
+2026-09-20T07:07:34.551Z [info] NapCat: ws://127.0.0.1:3001（设备 QQ 号=连接后自动获取）
+2026-09-20T07:07:34.551Z [info] 媒体/WAP 服务已监听 0.0.0.0:13981
+2026-09-20T07:07:34.551Z [info] 管理页已监听 127.0.0.1:13980
+2026-09-20T07:07:34.554Z [info] [napcat] 已连接 ws://127.0.0.1:3001
+2026-09-20T07:07:35.182Z [error] [napcat] 联系人镜像刷新失败: FOREIGN KEY constraint failed
+2026-09-20T07:07:38.965Z [info] 收到 SIGINT，正在关闭...
+2026-09-20T07:07:38.968Z [info] [napcat] NapCat 连接断开，等待重连

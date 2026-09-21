@@ -161,6 +161,55 @@ function createQQServer(options) {
     return filter;
   }
 
+  // 群接收状态就绪时通知上层（settings.onGroupReceiveReady），用来回放群聊历史：
+  // 老客户端的群窗口只存内存、退出即空（见 core/group-history.js 的说明）。
+  // 延迟一拍再发——客户端刚上报订阅清单时可能还在初始化群列表，此时塞进去的
+  // 群消息会被它丢掉。每个会话只通知一次（登录时重置）。
+  function scheduleGroupHistoryReplay(session, reason) {
+    if (typeof settings.onGroupReceiveReady !== 'function') return false;
+    if (session.groupHistoryReplayScheduled) return false;
+    session.groupHistoryReplayScheduled = true;
+    const delay = Math.max(0, Number(settings.replayGroupHistoryDelayMs) || 0);
+    const timer = setTimeout(() => {
+      if (!session.loggedIn || session.socket.destroyed) return;
+      try {
+        settings.onGroupReceiveReady(session, reason);
+      } catch (error) {
+        settings.logger({
+          event: 'group_history_replay_error', uin: session.uin, reason,
+          message: error.message,
+        });
+      }
+    }, delay);
+    if (timer.unref) timer.unref();
+    return true;
+  }
+
+  // 登录就绪时通知上层（settings.onClientReady），用来回放私聊历史：
+  // 私聊窗口读的是本机记录，且没有「拉服务器历史」的入口（见 core/private-history.js）。
+  // 挂在登录成功之后而不是群订阅清单，是因为私聊不依赖群接收状态；
+  // 但仍要延迟一拍——客户端登录后还要跑好友/群同步，太快推会被它丢掉。
+  // 每个会话只通知一次（登录时重置）。
+  function schedulePrivateHistoryReplay(session, reason) {
+    if (typeof settings.onClientReady !== 'function') return false;
+    if (session.privateHistoryReplayScheduled) return false;
+    session.privateHistoryReplayScheduled = true;
+    const delay = Math.max(0, Number(settings.replayPrivateHistoryDelayMs) || 0);
+    const timer = setTimeout(() => {
+      if (!session.loggedIn || session.socket.destroyed) return;
+      try {
+        settings.onClientReady(session, reason);
+      } catch (error) {
+        settings.logger({
+          event: 'private_history_replay_error', uin: session.uin, reason,
+          message: error.message,
+        });
+      }
+    }, delay);
+    if (timer.unref) timer.unref();
+    return true;
+  }
+
   function pushPresenceChange(changedUin, reason) {
     const presence = visiblePresence(changedUin);
     for (const friend of store.friendsOf(changedUin)) {
@@ -574,6 +623,9 @@ function createQQServer(options) {
           state.pendingGroupDiscoveries.clear();
           state.buddyDetailsInProgress = false;
           state.buddyDetailsCursor = 0;
+          // 重新登录视为新会话：允许再回放一次历史（群聊 + 私聊）。
+          state.groupHistoryReplayScheduled = false;
+          state.privateHistoryReplayScheduled = false;
           sessions.set(state.uin, state);
           const success = protocol.buildLoginSuccessPayload({
             port: settings.port || 14000,
@@ -593,6 +645,8 @@ function createQQServer(options) {
             extensionTypes: login.extensions.map((extension) => extension.type),
           });
           pushPresenceChange(state.uin, 'login');
+          // 私聊历史回放：不依赖群订阅状态，登录就绪即可（内部还会延迟一拍）。
+          schedulePrivateHistoryReplay(state, 'login');
           // QQ2013 从它主动请求的 0x00AF GetNewList 中读取 kind=4 群关系；
           // 不能在登录初始化期间主动推送 0x00A4。若客户端没有走 0x00AF，
           // 0x0069 名册完成后仍会启用小批 0x0054 + 0x00A4 兼容回退。
@@ -1275,6 +1329,7 @@ function createQQServer(options) {
             receiveStateApplied,
             requestHex: settings.traceProtocol && request ? request.toString('hex') : undefined,
           });
+          if (receiveStateApplied) scheduleGroupHistoryReplay(state, 'group_sync');
           continue;
         }
 
@@ -1305,6 +1360,7 @@ function createQQServer(options) {
         if (frame.command === protocol.COMMAND_GROUP_RECEIVE_FILTER && state.loggedIn) {
           const requestPlain = protocol.decryptPayload(frame.payload, state.sessionKey);
           const groups = requestPlain ? parseGroupReceiveFilter(requestPlain) : [];
+          const receiveStateWasReady = state.groupReceiveStateReady === true;
           state.groupReceiveFilter = normalizeGroupReceiveFilter(groups);
           state.groupReceiveStateReady = true;
           // 0x008C 响应：[结果 0][条数 0]
@@ -1315,6 +1371,7 @@ function createQQServer(options) {
             plainHex: settings.traceProtocol && requestPlain
               ? requestPlain.toString('hex') : undefined,
           });
+          if (!receiveStateWasReady) scheduleGroupHistoryReplay(state, 'group_receive_filter');
           continue;
         }
 
@@ -1432,7 +1489,7 @@ function createQQServer(options) {
             event: 'group_service_ok', peer, uin: state.uin,
             subtype: request.subtype, groupId: request.groupId,
             cursor: request.cursor, action: request.action,
-            memberUins: request.memberUins, result,
+            memberUins: request.memberUins, result, lengthProfile: request.lengthProfile,
             responseProfile, probeMatched,
             requestHex: settings.traceProtocol && requestPlain
               ? requestPlain.toString('hex') : undefined,

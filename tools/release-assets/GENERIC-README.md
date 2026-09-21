@@ -40,7 +40,7 @@ npm start
 - 设备令牌：与 `gateway/config.json` 的 `token` 完全一致；
 - 设备 ID：为这台手机设置稳定且唯一的名称。
 
-详细配置、升级和排障见 [使用与配置手册](docs/USAGE.md)，客户端协议见 [Nyanya Protocol v1](docs/PROTOCOL.md)。如果你实际使用的是原版 J2ME/Symbian QQ，可以先阅读包内的 [旧手机零基础教程](docs/BEGINNER-GUIDE.md)，然后改用 Gateway Class 发布包。
+详细配置、升级和排障见 [使用与配置手册](docs/使用与配置手册.md)，客户端协议见 [Nyanya Protocol v1](docs/PROTOCOL.md)。如果你实际使用的是原版 J2ME/Symbian QQ，可以先阅读包内的 [旧手机零基础教程](docs/零基础教程.md)，然后改用 Gateway Class 发布包。
 
 本包不包含本机配置、token、日志、PID、SQLite 数据或旧 QQ 研究材料。协议默认是局域网明文，请只在可信家庭网络或可信 VPN 中使用，不要把网关或 NapCat 端口暴露到公网。
 

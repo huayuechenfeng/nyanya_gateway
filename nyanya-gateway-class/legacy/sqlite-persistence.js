@@ -25,10 +25,11 @@ function resolveFiles(input) {
 }
 
 class SqlitePersistence {
-  constructor(input) {
+  constructor(input, options) {
     const files = resolveFiles(input);
     this.databaseFile = files.databaseFile;
     this.legacyDataFile = files.legacyDataFile;
+    this.logger = (options && options.logger) || null;
     if (this.databaseFile) fs.mkdirSync(path.dirname(this.databaseFile), { recursive: true });
     this.db = new DatabaseSync(this.databaseFile || ':memory:');
     this.db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;');
@@ -182,7 +183,172 @@ class SqlitePersistence {
     };
   }
 
+  // 保存前收敛引用：就地剔除会撞外键 / 唯一约束的行。
+  //
+  // 为什么必须有这一步：save() 是「全表 DELETE + 重建」的单事务，任何一行
+  // 违反约束都会让整个事务回滚——库被冻结在上一个版本，后续每次 save 继续
+  // 失败。2026-09-20 的故障就是这么来的：NapCat 换号后，旧账号的群从镜像里
+  // 消失，但 group_messages 还留着指向那些群的历史消息，
+  // group_messages.group_id -> chat_groups(id) 外键失败 → 联系人镜像永远刷不上。
+  //
+  // 这里的选择是「丢弃失效引用」而不是「让事务失败」：失效引用指向的对象已经
+  // 不存在，本身就是坏数据；丢弃后内存模型与落库内容保持一致（就地改 data），
+  // 避免每轮 save 重复踩同一个坑。收敛结果通过 report 上报，由调用方写日志。
+  reconcile(data) {
+    const report = {
+      accounts: 0, groups: 0, members: 0, groupMessages: 0,
+      friends: 0, requests: 0, messages: 0, outbox: 0,
+      providers: 0, relationships: 0,
+    };
+    const drop = (kind) => { report[kind] += 1; };
+
+    // 1) accounts：uin 重复会撞主键
+    const uins = new Set();
+    data.accounts = (data.accounts || []).filter((account) => {
+      const uin = Number(account.uin);
+      if (!Number.isInteger(uin) || uin <= 0 || uins.has(uin)) {
+        drop('accounts');
+        return false;
+      }
+      uins.add(uin);
+      account.uin = uin;
+      account.friends = Array.isArray(account.friends)
+        ? account.friends.map(Number).filter((value) => Number.isInteger(value)) : [];
+      account.incomingRequests = Array.isArray(account.incomingRequests)
+        ? account.incomingRequests : [];
+      return true;
+    });
+
+    // 2) chat_groups：id / public_id 唯一，且 owner_uin 必须存在
+    const groupIds = new Set();
+    const publicIds = new Set();
+    data.groups = (data.groups || []).filter((group) => {
+      const id = Number(group.id);
+      const publicId = Number(group.publicId);
+      const ownerUin = Number(group.ownerUin);
+      if (!Number.isInteger(id) || groupIds.has(id)
+          || !Number.isInteger(publicId) || publicIds.has(publicId)
+          || !uins.has(ownerUin)) {
+        drop('groups');
+        return false;
+      }
+      groupIds.add(id);
+      publicIds.add(publicId);
+      group.id = id;
+      group.publicId = publicId;
+      group.ownerUin = ownerUin;
+      return true;
+    });
+
+    // 3) group_members：uin 必须是已知账号
+    for (const group of data.groups) {
+      const memberUins = new Set();
+      group.members = (group.members || []).filter((member) => {
+        const uin = Number(member.uin);
+        if (!uins.has(uin) || memberUins.has(uin)) {
+          drop('members');
+          return false;
+        }
+        memberUins.add(uin);
+        member.uin = uin;
+        return true;
+      });
+    }
+
+    // 4) group_messages：群和发送者都必须还存在（本次故障的直接原因）
+    const groupMessageIds = new Set();
+    data.groupMessages = (data.groupMessages || []).filter((message) => {
+      const id = Number(message.id);
+      if (!Number.isInteger(id) || groupMessageIds.has(id)
+          || !groupIds.has(Number(message.groupId))
+          || !uins.has(Number(message.from))) {
+        drop('groupMessages');
+        return false;
+      }
+      groupMessageIds.add(id);
+      return true;
+    });
+
+    // 5) friends / friend_requests：两端都必须是已知账号
+    for (const account of data.accounts) {
+      const seenFriends = new Set();
+      account.friends = account.friends.filter((friendUin) => {
+        const value = Number(friendUin);
+        if (!uins.has(value) || seenFriends.has(value)) {
+          drop('friends');
+          return false;
+        }
+        seenFriends.add(value);
+        return true;
+      });
+      const seenRequesters = new Set();
+      account.incomingRequests = account.incomingRequests.filter((request) => {
+        const from = Number(request.from);
+        if (!uins.has(from) || seenRequesters.has(from)) {
+          drop('requests');
+          return false;
+        }
+        seenRequesters.add(from);
+        request.from = from;
+        return true;
+      });
+    }
+
+    // 6) 其余表没有外键，但主键 / 唯一键冲突同样会回滚，一并去重
+    const messageIds = new Set();
+    data.messages = (data.messages || []).filter((message) => {
+      const id = Number(message.id);
+      if (!Number.isInteger(id) || messageIds.has(id)) {
+        drop('messages');
+        return false;
+      }
+      messageIds.add(id);
+      return true;
+    });
+    const outboxIds = new Set();
+    data.outbox = (data.outbox || []).filter((entry) => {
+      const id = String(entry.id);
+      if (outboxIds.has(id)) {
+        drop('outbox');
+        return false;
+      }
+      outboxIds.add(id);
+      return true;
+    });
+    const providerIds = new Set();
+    data.providers = (data.providers || []).filter((provider) => {
+      const id = String(provider.id);
+      if (providerIds.has(id)) {
+        drop('providers');
+        return false;
+      }
+      providerIds.add(id);
+      return true;
+    });
+    const relationshipKeys = new Set();
+    data.relationships = (data.relationships || []).filter((relationship) => {
+      const key = `${Number(relationship.virtualUin)}:${Number(relationship.targetUin)}`;
+      if (relationshipKeys.has(key)) {
+        drop('relationships');
+        return false;
+      }
+      relationshipKeys.add(key);
+      return true;
+    });
+
+    let removed = 0;
+    for (const kind of Object.keys(report)) removed += report[kind];
+    report.removed = removed;
+    return report;
+  }
+
   save(data) {
+    // 先收敛，再开事务：宁可丢弃失效引用，也不能让整个事务回滚。
+    const report = this.reconcile(data);
+    if (report.removed > 0 && this.logger) {
+      this.logger.error(`[store] 保存前收敛了 ${report.removed} 条失效引用，`
+        + '避免外键/唯一约束导致整库回滚: ' + JSON.stringify(report));
+    }
     const db = this.db;
     db.exec('BEGIN IMMEDIATE');
     try {
@@ -251,6 +417,7 @@ class SqlitePersistence {
       db.exec('ROLLBACK');
       throw error;
     }
+    return report;
   }
 
   saveMedia(value) {

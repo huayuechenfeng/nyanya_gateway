@@ -49,6 +49,39 @@ function loadConfig(overrides) {
     // 客户端本地的"关闭群消息"开关不产生网络命令，只能由网关侧过滤。
     mutedGroupIds: Array.isArray(fileCfg.mutedGroupIds)
       ? fileCfg.mutedGroupIds.map(Number).filter(Number.isInteger) : [],
+    // 登录后回放群聊历史：老客户端的群窗口只在内存里存消息（不落盘、上限 20 条），
+    // 退出即清空；只有私聊会写到本机 RMS。开启后，客户端群接收状态就绪时，把网关
+    // 记录的最近 replayGroupHistoryLimit 条群消息当普通群消息补推一遍，群窗口一
+    // 打开就有内容。代价：这些消息在客户端看来是新消息（未读/可能提示音）。
+    replayGroupHistoryOnLogin: booleanSetting(
+      env.NYANYA_REPLAY_GROUP_HISTORY, fileCfg.replayGroupHistoryOnLogin, false),
+    replayGroupHistoryLimit: Number(env.NYANYA_REPLAY_GROUP_HISTORY_LIMIT
+      || fileCfg.replayGroupHistoryLimit || 10),
+    // 回放延迟：客户端刚上报订阅清单时可能还在初始化群列表，太快推会被它丢掉。
+    replayGroupHistoryDelayMs: Number(env.NYANYA_REPLAY_GROUP_HISTORY_DELAY_MS
+      || (fileCfg.replayGroupHistoryDelayMs === undefined
+        ? 1200 : fileCfg.replayGroupHistoryDelayMs)),
+    // 登录后回放私聊历史：私聊窗口读的是本机 RMS，又没有「拉服务器历史」的菜单
+    // （群里那个「群聊天记录」是客户端专有的）。开启后，客户端登录就绪时把网关
+    // 记录的最近 replayPrivateHistoryLimit 条私聊消息（对方发的）当普通私聊消息
+    // 补推一遍，私聊窗口一打开就有内容。代价：客户端看来是新消息（未读/可能提示音），
+    // 并会写进本机记录。
+    replayPrivateHistoryOnLogin: booleanSetting(
+      env.NYANYA_REPLAY_PRIVATE_HISTORY, fileCfg.replayPrivateHistoryOnLogin, false),
+    replayPrivateHistoryLimit: Number(env.NYANYA_REPLAY_PRIVATE_HISTORY_LIMIT
+      || fileCfg.replayPrivateHistoryLimit || 10),
+    // 回放延迟：客户端登录后还要跑好友/群同步，太快推会被它丢掉。
+    replayPrivateHistoryDelayMs: Number(env.NYANYA_REPLAY_PRIVATE_HISTORY_DELAY_MS
+      || (fileCfg.replayPrivateHistoryDelayMs === undefined
+        ? 1500 : fileCfg.replayPrivateHistoryDelayMs)),
+    // 回放水位有效期（毫秒）：水位 = 每个会话「上次回放到哪条消息 id」，只推增量，
+    // 避免客户端掉线重连时把看过的历史又推一遍（详见 core/replay-cursor.js）。
+    // 水位存在网关内存里；超过这个时间没动过就作废，下次重新全量喂一遍——
+    // 因为「客户端重启」和「掉线重连」在协议上无法区分，隔久了就当它重启过。
+    // 0 或负数 = 永不过期（水位只随网关进程结束而清空）。
+    replayCursorTtlMs: Number(env.NYANYA_REPLAY_CURSOR_TTL_MS
+      || (fileCfg.replayCursorTtlMs === undefined
+        ? 600000 : fileCfg.replayCursorTtlMs)),
     notifyIntervalSeconds: Number(env.NYANYA_NOTIFY_INTERVAL_SECONDS
       || fileCfg.notifyIntervalSeconds || 60),
     buddyDetailsPageSize: Number(env.NYANYA_BUDDY_PAGE_SIZE
@@ -98,6 +131,17 @@ function loadConfig(overrides) {
     // 媒体/手机 WAP 服务（降级使用，图片语音只存本地不上传真实 QQ）
     mobileHost: env.NYANYA_MOBILE_HOST || fileCfg.mobileHost || '0.0.0.0',
     mobilePort: Number(env.NYANYA_MOBILE_PORT || fileCfg.mobilePort || 13981),
+    // QQ 空间说说的数据源（qzone-bridge 独立服务，家里部署、经 frp 映射到本机）。
+    // 只用于「看说说列表」（get_emotion_list）；发说说仍走 NapCat send_qzone_msg。
+    qzoneBridgeUrl: env.NYANYA_QZONE_BRIDGE_URL || fileCfg.qzoneBridgeUrl || 'http://127.0.0.1:5700',
+    // 收到 NapCat 图片时，推给老客户端的链接里用的主机。留空则自动探测局域网 IP；
+    // 多网卡（VMware/虚拟网卡）可能挑错，这时在这里写死手机能访问的那个 IP。
+    mediaPublicHost: env.NYANYA_MEDIA_PUBLIC_HOST || fileCfg.mediaPublicHost || '',
+    // 登录响应报文里回给客户端的网关 IP（协议字段固定 4 字节，见 legacy/protocol.js
+    // 的 ipv4ToBuffer）。留空则自动探测局域网 IP；服务器上带 docker0 等虚拟网卡时
+    // 可能探到 172.x/10.x 内网地址，这时在这里写死手机能访问的那个 IP。
+    // 只接受 IPv4 点分字面量，填域名或 IPv6 会被忽略并回退到自动探测。
+    loginPublicHost: env.NYANYA_LOGIN_PUBLIC_HOST || fileCfg.loginPublicHost || '',
 
     log: console
   };

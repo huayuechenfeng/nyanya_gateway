@@ -158,6 +158,28 @@ function passwordDigest(password) {
   return crypto.createHash('md5').update(Buffer.from(password, 'latin1')).digest();
 }
 
+// 登录响应报文里的网关 IP 字段只有 4 字节（buildLoginSuccessPayload 的
+// 偏移 +0 和 +46 各塞一份），所以这里只认 IPv4 点分字面量：域名、IPv6、
+// 越界数字全部返回 null，调用方应回退到自动探测出来的局域网 IP。
+// 另外拒绝前导零（"010.0.0.1" 在不同解析器里是八进制）和 0.0.0.0（不可达）。
+function ipv4ToBuffer(value) {
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  if (!text) return null;
+  const parts = text.split('.');
+  if (parts.length !== 4) return null;
+  const octets = [];
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) return null;
+    if (part.length > 1 && part[0] === '0') return null;
+    const octet = Number(part);
+    if (octet > 255) return null;
+    octets.push(octet);
+  }
+  if (octets.every((octet) => octet === 0)) return null;
+  return Buffer.from(octets);
+}
+
 function buildLoginSuccessPayload(options) {
   const token = options.token || crypto.randomBytes(32);
   const loginIp = options.loginIp || Buffer.from([127, 0, 0, 1]);
@@ -406,8 +428,99 @@ function parseGroupSendPayload(payload) {
   return { subtype: 1, groupId, clientSequence, clientTimestamp, text };
 }
 
+// ---------- 群消息里的「图片块」（下行） ----------
+// 旧客户端（QQ2011 J2ME，hb.class）在群消息正文里认这个富媒体块：正文里出现
+// UTF-16BE 的 \u0015、且紧跟一个 '6' 字符时，客户端把它当成一张图片，解析出
+// uuid 和 fileid，最后渲染成一个可点击的 [图片] 气泡，指向
+//   http://<网关>:<mobilePort>/forward.jsp?bid=331&B_UID=<uin>&pic=<uuid>
+//        &gid=<群公开号>&time=<秒>&fileid=<十进制>&encodetype=1
+// 注意：私聊（0x0056）在客户端里走另一条分支且不绑定 URL，所以图片块只对群消息有效。
+//
+// 定长布局（uuid 为 36 字符时整块 85 个 UTF-16 码元 = 170 字节），字节偏移与客户端
+// im.f() 的读取点一一对应：
+//   +0  0x0015   块标记（\u0015）
+//   +2  '6'      图片定义（'7' 表示引用前面第 N 张，网关不用）
+//   +7  十位     } 块长，十进制，单位是「字符数」→ 字节长 = 值 << 1
+//   +9  个位     }
+//   +10 u16      值 - 65 = uuid 的字符数
+//   +18 16 字节  fileid 的 hex ASCII（客户端 Long.parseLong(s,16) → 十进制）
+//   +98 起       uuid 字符串（UTF-16BE）
+// 其余字节客户端不读，保持 0 即可。
+const GROUP_IMAGE_MARKER = 0x0015;
+const GROUP_IMAGE_DEFINE_CODE = 0x36; // '6'
+const GROUP_IMAGE_FIXED_CHARS = 49;   // uuid 之前的 98 字节固定头
+const GROUP_IMAGE_UUID_OFFSET = 98;   // uuid 起始字节偏移
+const GROUP_IMAGE_MAX_CHARS = 99;     // 两位十进制的上限
+const GROUP_IMAGE_PLACEHOLDER = '\u005b\u56fe\u7247\u005d'; // [图片]
+
+// 客户端只会把这段 hex 转成十进制塞进 URL（Long.parseLong(s,16)），而它在 +18 处
+// 只读 8 个字符；所以这里必须正好 8 位、且不超过 32 位，避免 parseLong 溢出后 fileid 变 null。
+// 网关侧按 pic(uuid) 找图，fileid 只求稳定、不要求可逆。
+function groupImageFileId(uuid) {
+  let hash = 0x811c9dc5;
+  const text = String(uuid == null ? '' : uuid);
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+function buildGroupImageBlock(uuid, fileidHex) {
+  const text = String(uuid == null ? '' : uuid);
+  if (!text) throw new Error('group image uuid is empty');
+  const totalChars = GROUP_IMAGE_FIXED_CHARS + text.length;
+  if (totalChars > GROUP_IMAGE_MAX_CHARS) {
+    throw new Error('group image uuid is too long for the legacy block');
+  }
+  // +18 处客户端只读 8 个字符（16 字节 = 8 个 UTF-16BE 码元）
+  const hex = String(fileidHex == null || fileidHex === '' ? groupImageFileId(text) : fileidHex)
+    .toLowerCase().replace(/[^0-9a-f]/g, '').slice(-8).padStart(8, '0');
+  const block = Buffer.alloc(totalChars * 2);
+  const write = (byteOffset, value) => block.writeUInt16BE(value & 0xFFFF, byteOffset);
+  write(0, GROUP_IMAGE_MARKER);
+  // 客户端只看 +3 这一个低字节，必须是 '6'；+2 的高字节保持 0。
+  block[3] = GROUP_IMAGE_DEFINE_CODE;
+  write(6, 0x30 + Math.floor(totalChars / 10));
+  write(8, 0x30 + (totalChars % 10));
+  write(10, 65 + text.length);
+  for (let index = 0; index < 8; index += 1) {
+    write(18 + index * 2, hex.charCodeAt(index));
+  }
+  for (let index = 0; index < text.length; index += 1) {
+    write(GROUP_IMAGE_UUID_OFFSET + index * 2, text.charCodeAt(index));
+  }
+  return block;
+}
+
+// 把正文里的 [图片] 占位符按顺序换成图片块；占位符不够时，多余的图片块追加到末尾。
+function encodeGroupImageText(rawText, images) {
+  const blocks = images.map((image) => (
+    image && typeof image === 'object'
+      ? buildGroupImageBlock(image.uuid, image.fileidHex)
+      : buildGroupImageBlock(image)));
+  const source = String(rawText == null ? '' : rawText);
+  const parts = [];
+  let cursor = 0;
+  let used = 0;
+  for (; used < blocks.length; used += 1) {
+    const at = source.indexOf(GROUP_IMAGE_PLACEHOLDER, cursor);
+    if (at < 0) break;
+    if (at > cursor) parts.push(encodeLegacyText(source.slice(cursor, at)));
+    parts.push(blocks[used]);
+    cursor = at + GROUP_IMAGE_PLACEHOLDER.length;
+  }
+  if (cursor < source.length) parts.push(encodeLegacyText(source.slice(cursor)));
+  for (; used < blocks.length; used += 1) parts.push(blocks[used]);
+  return Buffer.concat(parts);
+}
+
 function buildGroupMessagePayload(options) {
-  const text = encodeLegacyText(options.text || '');
+  const images = Array.isArray(options.images) ? options.images.filter(Boolean) : [];
+  const text = images.length > 0
+    ? encodeGroupImageText(
+      options.imageText == null ? options.text : options.imageText, images)
+    : encodeLegacyText(options.text || '');
   if (text.length === 0) throw new Error('group message text is empty');
   let displayName = encodeLegacyText(options.displayName || String(options.senderUin));
   if (displayName.length > 126) displayName = displayName.subarray(0, 126);
@@ -481,12 +594,24 @@ function parseGroupServiceRequest(payload) {
       // QQ2009 J2ME and QQ2013/S60 send group text through 0x006D subtype 26.
       // Layout recovered from ik.b(long,short,long,byte[]):
       // subtype, group UIN, encoded-body length, ten fixed header bytes,
-      // UTF-16BE text, and a fixed 16-byte client capability trailer. QQ2013
-      // excludes the ten-byte header from encoded-body length (for example,
-      // a two-character message reports 0x0014 = 4 text + 16 trailer bytes).
+      // UTF-16BE text, and a fixed 16-byte client capability trailer.
+      //
+      // 「encoded-body length」的起算点随客户端版本而变，正文起点（offset 17）
+      // 和尾部结构则完全一致：
+      //   QQ2013/S60 不含那十个固定头字节（两个字符报 0x0014 = 4 文本 + 16 尾）；
+      //   QQ2011 J2ME 11.00.12 含这十个字节（实测 "abc" 报 0x0020 = 10 + 6 + 16）。
+      // 实测载荷（QQ2011 发 "abc" 到群 1126386035）：
+      //   1a 43234973 0020 0001 0000000000000000 0061 0062 0063 <16B trailer>
+      // 所以两种语义都接受；QQ2011 把这段当作载荷的一部分，不再断言它的首
+      // 两字节等于 1。
       if (payload.length < 35) throw new Error('group message service payload is too short');
       const bodyLength = payload.readUInt16BE(5);
-      if (bodyLength !== payload.length - 17 || payload.readUInt16BE(7) !== 1) {
+      const bodyFromText = payload.length - 17;
+      const bodyFromFixedHeader = payload.length - 7;
+      const lengthProfile = bodyLength === bodyFromText ? 'text'
+        : (bodyLength === bodyFromFixedHeader ? 'fixed-header' : null);
+      if (lengthProfile === null
+          || (lengthProfile === 'text' && payload.readUInt16BE(7) !== 1)) {
         throw new Error('group message service length/header is invalid');
       }
       const trailer = Buffer.from([
@@ -502,7 +627,7 @@ function parseGroupServiceRequest(payload) {
       }
       const text = decodeLegacyText(textBytes);
       if (!text.trim()) throw new Error('group message service text is empty');
-      return { subtype, groupId: payload.readUInt32BE(1), memberUins: [], text };
+      return { subtype, groupId: payload.readUInt32BE(1), memberUins: [], text, lengthProfile };
     }
     return { subtype, groupId: payload.length >= 5 ? payload.readUInt32BE(1) : null,
       memberUins: [], raw: Buffer.from(payload) };
@@ -1026,6 +1151,7 @@ module.exports = {
   buildSymbianGroupMemberPayload,
   buildSymbianGroupInfoBootstrapPayload,
   buildGroupMappingPayload,
+  buildGroupImageBlock,
   buildGroupMessagePayload,
   buildGroupServiceAck,
   buildEmptyBuddyListPayload,
@@ -1042,6 +1168,7 @@ module.exports = {
   buildGetKeyResponsePayload,
   deriveSymbianSessionKey,
   buildLoginSuccessPayload,
+  ipv4ToBuffer,
   consumeFrames,
   createFrame,
   decryptPayload,
