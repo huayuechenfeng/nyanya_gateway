@@ -243,7 +243,16 @@ function main() {
   // 回放水位：客户端掉线会自己重连，重连等于重新登录一遍，回放就会把看过的
   // 消息再推一次（2026-09-20：加好友那句系统文案被反复重推）。水位记住每个会话
   // 推到哪条消息 id，之后只推增量。存在内存里、带过期时间，理由见 core/replay-cursor.js。
-  const replayCursors = createReplayCursors({ ttlMs: config.replayCursorTtlMs });
+  //
+  // 群/私聊分开水位（2026-09-21 复发根因）：两者对「重启」的容忍度相反。
+  //   - 群窗口只放内存、退出即空，客户端重启后必须重新全量补历史，所以群水位用
+  //     短 TTL（replayCursorTtlMs），隔久了就视为「重启过」全量重推；
+  //   - 私聊写本机 RMS、不怕重启，重连只需要增量；若共用短 TTL，客户端周期性
+  //     重连（网络 NAT 老问题）时私聊水位频繁过期，把加好友那句系统文案反复重推，
+  //     看着像「好友通过通知周期性弹」。所以私聊水位设为永不过期（ttlMs=0），
+  //     只随网关进程结束而清空。
+  const groupReplayCursors = createReplayCursors({ ttlMs: config.replayCursorTtlMs });
+  const privateReplayCursors = createReplayCursors({ ttlMs: 0 });
 
   // 群聊历史回放：老客户端的群窗口只在内存里存消息、退出即空（见 core/group-history.js）。
   // 客户端群接收状态就绪时，把网关记录的最近若干条当普通群消息补推一遍。
@@ -255,7 +264,7 @@ function main() {
         uin: state.uin,
         limit: config.replayGroupHistoryLimit,
         groupReceiveFilter: state.groupReceiveFilter,
-        cursors: replayCursors,
+        cursors: groupReplayCursors,
         deliverGroup,
         reason,
       });
@@ -276,7 +285,7 @@ function main() {
         store,
         uin: state.uin,
         limit: config.replayPrivateHistoryLimit,
-        cursors: replayCursors,
+        cursors: privateReplayCursors,
         deliverText: (fromUin, toUin, text, subtype, why) =>
           qqServer.deliverText(fromUin, toUin, text, subtype, why),
         reason,
