@@ -1,6 +1,14 @@
 @echo off
-rem Keep this file in CRLF; cmd.exe can misparse UTF-8 batch files with LF-only endings.
 chcp 65001 >nul
+rem 注意：本文件必须用 CRLF(Windows) 行尾；cmd.exe 解析 UTF-8 批处理时 LF 行尾会出错。
+rem ============================================================
+rem  启动网关.bat ——【旧版 Nyanya Gateway（非 Class）】启动入口
+rem
+rem  作用：检查 Node.js → 释放 14000 端口 → 启动 gateway\server.js
+rem  用法：双击本文件
+rem  依赖：Node.js 22.5+ / 本目录 gateway\server.js
+rem  注意：这是早期 v0.1.0 布局的脚本；当前主力是 nyanya-gateway-class\
+rem ============================================================
 setlocal
 cd /d "%~dp0"
 

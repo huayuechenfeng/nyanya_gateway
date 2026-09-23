@@ -33,7 +33,7 @@ Gateway Class 发布包包含：
 
 - 可直接运行的 Class 网关；
 - J2ME JAR 注入器 `制作客户端.bat` 及全部依赖；
-- Symbian 路由脚本 `启用Symbian路由.bat`；
+- Symbian 路由脚本 `启用塞班路由.bat`；
 - 配置示例、使用教程和测试。
 
 发布包不包含原版 MobileQQ JAR、Symbian QQ SIS、真实 QQ 密码、用户配置、日志或运行数据库。用户只需要另行准备自己合法持有的原版客户端。
@@ -89,7 +89,7 @@ powershell -ExecutionPolicy Bypass -File tools\patch-client.ps1 `
 ### Symbian QQ
 
 1. 先启动 Class 网关；
-2. 双击 `启用Symbian路由.bat` 并允许管理员权限；
+2. 双击 `启用塞班路由.bat` 并允许管理员权限；
 3. 手机连接 Wi-Fi；
 4. 记录手机当前 IP，并在电脑运行 `ipconfig` 查看子网掩码；
 5. 把手机 IPv4 由自动改成手动，填写同网段且不冲突的固定手机 IP，并填写与电脑相同的子网掩码；

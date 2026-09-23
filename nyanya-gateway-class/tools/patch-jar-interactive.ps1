@@ -40,7 +40,7 @@ if ([string]::IsNullOrWhiteSpace($mode)) { $mode = '1' }
 $targetAddress = $null
 if ($mode -eq '2') {
     Write-Host ''
-    $addr = Read-Host '请输入服务器公网 IP 或域名（例如 103.115.43.42 或 gateway.example.com）'
+    $addr = Read-Host '请输入服务器公网 IP 或域名（例如 ServerAddress 或 gateway.example.com）'
     $addr = $addr.Trim()
     if ($addr -notmatch '^[A-Za-z0-9.-]+$') {
         Write-Host ''

@@ -70,7 +70,7 @@ J2ME 原版客户端推荐使用 QQ2009 及以上版本。QQ2008 及以下可能
 2. 在 NapCat WebUI 中创建一个 **WebSocket 服务端（正向 WebSocket）**，建议监听 `127.0.0.1:3001`。
 3. 复制 `config.example.json` 为 `config.json`，填入 NapCat token 和老手机登录时使用的本地 `deviceToken`。
 4. 启动 Gateway Class，看到 `[napcat] 已连接` 和“镜像已刷新”日志。
-5. J2ME 用户运行 `制作客户端.bat` 生成自己的补丁 JAR；Symbian 用户运行 `启用Symbian路由.bat`，先给手机设置同网段的固定 IPv4 和正确的子网掩码，再把当前 Wi-Fi 的网关地址改成脚本显示的电脑局域网 IP。
+5. J2ME 用户运行 `制作客户端.bat` 生成自己的补丁 JAR；Symbian 用户运行 `启用塞班路由.bat`，先给手机设置同网段的固定 IPv4 和正确的子网掩码，再把当前 Wi-Fi 的网关地址改成脚本显示的电脑局域网 IP。
 6. 手机登录时输入真实 QQ 号；密码栏输入 `deviceToken`，**不要输入真实 QQ 密码**。
 7. 等待好友和群组加载完成，再测试一条私聊和一条群聊文字消息。
 

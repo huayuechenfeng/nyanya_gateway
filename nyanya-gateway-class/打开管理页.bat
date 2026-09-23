@@ -1,3 +1,11 @@
 @echo off
-rem Keep this file in CRLF; cmd.exe can misparse UTF-8 batch files with LF-only endings.
+chcp 65001 >nul
+rem 注意：本文件必须用 CRLF(Windows) 行尾；cmd.exe 解析 UTF-8 批处理时 LF 行尾会出错。
+rem ============================================================
+rem  打开管理页.bat —— 用默认浏览器打开网关管理后台
+rem
+rem  作用：打开 http://127.0.0.1:13980/（网关管理页，仅本机可访问）
+rem  用法：网关已启动时双击本文件
+rem  依赖：网关正在运行（管理端口 13980）
+rem ============================================================
 start http://127.0.0.1:13980/
