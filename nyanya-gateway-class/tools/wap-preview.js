@@ -12,8 +12,11 @@
 //   node tools/wap-preview.js 202 1126386035        # 指定 bid 与内部群 id
 //   node tools/wap-preview.js 203 1126386035
 //   node tools/wap-preview.js 331 <媒体id>
+//   node tools/wap-preview.js 0                     # bid=0 → 腾讯网 WAP 门户
+//   node tools/wap-preview.js 20                    # bid=20 → 腾讯网门户（等价）
 //
-// 支持 bid=202/203/204（群记录/群成员），以及 331 / mobile/media（看图、语音）。
+// 支持 bid=202/203/204（群记录/群成员），331 / mobile/media（看图/语音），
+// 以及腾讯网门户（bid=0 / bid=20 / 根路径）。
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -50,7 +53,11 @@ async function main() {
   }
 
   let query;
-  if (bid === '202' || bid === '203' || bid === '204') {
+  if (bid === '0' || bid === '20') {
+    // 腾讯网门户：根路径与 forward.jsp?bid=0/20 均可直出<｜image｜>门户。
+    query = bid === '0' ? '' : `bid=${bid}`;
+    console.log('\nrendering 腾讯网 WAP 门户');
+  } else if (bid === '202' || bid === '203' || bid === '204') {
     const target = (argument && groups.find((group) => Number(group.id) === Number(argument)))
       || groups.find((group) => store.recentGroupMessages(group.id, 1).length) || groups[0];
     if (!target) {

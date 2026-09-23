@@ -21,7 +21,7 @@
   listener before retrying. Server-side ClientAliveInterval also helps; see REMOTE-DEPLOY.md.
 #>
 param(
-  [string]$SshTarget = 'hanguo',
+  [string]$SshTarget = '服务器名',
   [int]$RemotePort = 3001,
   [int]$LocalPort = 3001,
   [int]$RetryDelaySeconds = 5
@@ -109,7 +109,7 @@ while ($true) {
 
   if ($attempt -le 2) {
     Write-Log '  hint: if this repeats immediately, the SSH key may need a passphrase.'
-    Write-Log '        Run "ssh hanguo" once in a normal window first, or start ssh-agent.'
+    Write-Log '        Run "ssh 服务器名" once in a normal window first, or start ssh-agent.'
     Write-Log '  hint: code 255 with "remote port forwarding failed" means something on the'
     Write-Log "        server already holds 127.0.0.1:$RemotePort (a dead tunnel session)."
     Write-Log '        This script clears that automatically; see REMOTE-DEPLOY.md.'

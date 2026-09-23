@@ -65,7 +65,7 @@ npm start
 ## Symbian QQ2013
 
 1. 先启动网关；
-2. 双击 `nyanya-gateway-class/启用Symbian路由.bat`，允许管理员权限；
+2. 双击 `nyanya-gateway-class/启用塞班路由.bat`，允许管理员权限；
 3. 手机连接 Wi-Fi；
 4. 记录手机当前 IP，在电脑运行 `ipconfig` 查看子网掩码；
 5. 把手机 IPv4 改为手动，填写同网段且不冲突的固定手机 IP 和与电脑相同的子网掩码；
